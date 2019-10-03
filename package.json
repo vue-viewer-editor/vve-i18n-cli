@@ -1,6 +1,6 @@
 {
   "name": "vve-i18n-cli",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "generate an internationalized text resource file",
   "bin": {
     "vve-i18n-cli": "./bin/index.js"

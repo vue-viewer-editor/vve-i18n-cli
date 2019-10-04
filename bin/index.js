@@ -17,7 +17,7 @@ function commaSeparatedList(value, split = ",") {
 }
 
 program
-  .version("1.0.0")
+  .version(require('../package.json').version)
   .option("--cwd <path>", "工作目录")
   .option("--root-dir <path>", "国际文本所在的根目录")
   .option(

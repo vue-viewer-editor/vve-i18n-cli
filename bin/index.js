@@ -64,7 +64,7 @@ const config = {
   rootDir: "src",
   // 默认所有模块，如果有传module参数，就只处理某个模块
   // '**/module-**/**/index.js'
-  moduleIndexRules: ["main.js"],
+  moduleIndexRules: ["."],
   // 匹配含有国际化文本的文件规则
   i18nFileRules: ["**/*.+(vue|js)"],
   // 国际化文本的正则表达式，正则中第一个捕获对象当做国际化文本
@@ -223,10 +223,12 @@ async function saveI18nFile({ dirPath } = {}) {
     const newData = await makeNewData(dirPath, item, originData);
 
     // 写文件
-    jsonfile.writeFile(langFilePath, newData, { spaces: 2, EOL: "\n" }, err => {
-      if (err) return console.log("提取失败" + langFilePath + "\n" + err);
+    try {
+      jsonfile.writeFileSync(langFilePath, newData, { spaces: 2, EOL: "\n" });
       console.log("提取完成" + langFilePath);
-    });
+    } catch (err) {
+      console.log("提取失败" + langFilePath + "\n" + err);
+    }
   }
 }
 

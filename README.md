@@ -1,5 +1,7 @@
 # vve-i18n-cli
 
+[![Build Status](https://travis-ci.org/vue-viewer-editor/vve-i18n-cli.svg?branch=master)](https://travis-ci.org/vue-viewer-editor/vve-i18n-cli)
+
 抽取国际化文本，生成国际化资源文件
 
 ## 安装

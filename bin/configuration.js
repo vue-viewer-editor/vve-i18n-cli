@@ -3,13 +3,13 @@ const path = require("path");
 
 const debug = buildDebug("files:configuration");
 
-function loadConfig (filepath) {
+function loadConfig(filepath) {
   try {
-    const conf = readConfig(filepath)
-    return conf
+    const conf = readConfig(filepath);
+    return conf;
   } catch (e) {
-    debug('error', e)
-    return null
+    debug("error", e);
+    return null;
   }
 }
 
@@ -17,7 +17,8 @@ function readConfig(filepath) {
   let options;
   try {
     const configModule = require(filepath);
-    options = configModule && configModule.__esModule
+    options =
+      configModule && configModule.__esModule
         ? configModule.default || undefined
         : configModule;
   } catch (err) {
@@ -27,11 +28,11 @@ function readConfig(filepath) {
   return {
     filepath,
     dirname: path.dirname(filepath),
-    options,
-  }
+    options
+  };
 }
 
 module.exports = {
   loadConfig,
-  readConfig,
-}
+  readConfig
+};

@@ -139,3 +139,9 @@ npm test // 测试
 npm release // 发布
 git push --follow-tags origin master && npm publish // npm 发布
 ```
+
+## 捐赠
+
+如果你觉得它有用，你可以给我买一杯奶茶。
+
+<img width="650" src="https://raw.githubusercontent.com/vue-viewer-editor/vve-i18n-cli/master/qrcode-donation.png" alt="donation">

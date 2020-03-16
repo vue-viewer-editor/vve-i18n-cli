@@ -145,7 +145,7 @@ const config = {
 ```
 npm i // 安装依赖
 npm test // 测试
-npm release // 发布
+npm run release // 发布
 git push --follow-tags origin master && npm publish // npm 发布
 ```
 

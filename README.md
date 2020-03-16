@@ -49,6 +49,11 @@ program
     "模块的国际化的json文件需要被保留下的key，即使这些组件在项目中没有被引用",
     commaSeparatedList
   )
+  .option(
+    "--ignore-key-rules <items>",
+    "忽略国际化KEY的规则，这些KEY不会生成再国际化文件中",
+    commaSeparatedList
+  )
   .option("--out-dir <path>", "生成的国际化资源包的输出目录")
   .option(
     "-l, --i18n-languages <items>",
@@ -98,9 +103,13 @@ const config = {
   // 国际化文本的正则表达式，正则中第一个捕获对象当做国际化文本
   i18nTextRules: [/(?:[\$.])t\(['"](.+?)['"]/g],
   // 模块的国际化的json文件需要被保留下的key，即使这些组件在项目中没有被引用
-  // key可以是一个字符串，正则，或者是函数
+  // 规则可以是一个字符串，正则，或者是函数
   keepKeyRules: [
     /^G\/+/ // G/开头的会被保留
+  ],
+  // 忽略国际化KEY的规则
+  // 规则可以是一个字符串，正则，或者是函数
+  ignoreKeyRules: [
   ],
   // 生成的国际化资源包的输出目录
   outDir: "lang",

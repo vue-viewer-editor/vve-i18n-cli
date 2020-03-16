@@ -47,3 +47,20 @@ function filterObjByKeyRules(obj = {}, keyRules = []) {
 }
 
 exports.filterObjByKeyRules = filterObjByKeyRules;
+
+
+// 判定一个KEY是否满足规则，满足一个则为true
+// 规则可以是一个字符串，正则或者函数
+function testRules(key, keyRules = []) {
+  return keyRules.some(keyRole => {
+    if (Object.prototype.toString.call(keyRole) === "[object RegExp]") {
+      return keyRole.test(key)
+    }
+    if (Object.prototype.toString.call(keyRole) === "[object Function]") {
+      return keyRole(key)
+    }
+    return keyRole === key
+  })
+}
+
+exports.testRules = testRules;

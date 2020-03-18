@@ -131,12 +131,13 @@ vfs
         return prefix === "$t('" && subfix === "')"
       }
 
-      const leftHtmlTagContent = new RegExp('>((?:[^\x00-\xff]|\w|[ {}])+)<', 'g')
+      const leftHtmlTagContent = new RegExp('>((?:[^\x00-\xff]|\w|[0-9{}.A-Za-z\\s])+)<', 'g')
       
       // 处理template
       const templateReg = new RegExp("<template>([\\s\\S]+)<\\/template>", "i")
       fileContent.replace(templateReg, function (match, key, index) {
         key.replace(leftHtmlTagContent, function (match, key, index) {
+          if (!key.trim()) return key
           console.log(match, key, index)
         })
       })

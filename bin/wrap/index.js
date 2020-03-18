@@ -131,7 +131,9 @@ vfs
         return prefix === "$t('" && subfix === "')"
       }
 
-      const leftHtmlTagContent = new RegExp('>((?:[^\x00-\xff]|\w|[0-9{}.A-Za-z\\s])+)<', 'g')
+      // 国际化文本，至少包含一个中文，可以包含中文数字.和空格
+      const i18nContentReg = /(?![{}A-Za-z0-9.]+)([^\x00-\xff]|[A-Za-z0-9. ])+/g
+      const TagContentReg = new RegExp('>((?:[^\x00-\xff]|\w|[0-9{}.A-Za-z\\s])+)<', 'g')
       
       // 处理template
       const templateReg = new RegExp("<template>([\\s\\S]+)<\\/template>", "i")
@@ -139,29 +141,43 @@ vfs
       const startTagReg = new RegExp(/<(?:[-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:@][-a-zA-Z0-9_:.]*(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(?:\/?)>/, 'g')
       // 属性的正则
       const attrReg = /([a-zA-Z_][-a-zA-Z0-9_:.]*)(?:\s*=\s*(?:(?:"((?:\\.|[^"])*)")|(?:'((?:\\.|[^'])*)')|([^>\s]+)))?/g;
-      
-      fileContent.replace(templateReg, function (match, key, index) {
-        // key.replace(leftHtmlTagContent, function (match, key, index) {
-        //   if (!key.trim()) return key
-        //   console.log(match, key, index)
-        // })
-        const newStartTagStr = key.replace(startTagReg, function (match, key ,index) {
-          // console.log(match, key, index)
-          const attrStr = key
-          if (!attrStr.trim()) return match
-          return match
-          // const newAttStr = attrStr.replace(attrReg, function (match, key, key2) {
-          //   // console.log(key, key2)
-          //   console.log(arguments)
-          //   // return [
-          //   //   key, key2
-          //   // ]
-          //   return key + '=' + key2
-          // })
-          // console.log(newAttStr)
+      // 前后非空白
+      const nonPreSubWhiteReg = /\S.+\S/
+
+      // 过滤出template相关内容
+      fileContent.replace(templateReg, function (match, templateKey, index) {
+        // 经过TagContentReg的过滤，$()"",这些关键字都不会被当作国际化文本处理
+        let newTemplateKey = templateKey.replace(TagContentReg, function (match, tagContentKey, index) {
+          if (!tagContentKey.trim()) return match
+          // console.log(match, tagContentKey)
+          // 经过这一层过滤，会过滤去tag内容的中文，并加上国际化文本
+          const newTagContentKey = tagContentKey.replace(i18nContentReg, function (match) {
+            // 这个一层过滤，前后空格不会被包裹在国际化里面
+            // 例子 <p> 啦啦啦 </p>  变成 <p> {{$t('啦啦啦')}} </p>
+            const newMatch = match.replace(nonPreSubWhiteReg, function (match) {
+              return `{{$t('${match}')}}`
+            })
+            return newMatch
+          })
+          return match.replace(tagContentKey, newTagContentKey)
         })
-        // console.log(newStartTagStr)
-        return newStartTagStr
+        // const newStartTagStr = key.replace(startTagReg, function (match, key ,index) {
+        //   // console.log(match, key, index)
+        //   const attrStr = key
+        //   if (!attrStr.trim()) return match
+        //   return match
+        //   // const newAttStr = attrStr.replace(attrReg, function (match, key, key2) {
+        //   //   // console.log(key, key2)
+        //   //   console.log(arguments)
+        //   //   // return [
+        //   //   //   key, key2
+        //   //   // ]
+        //   //   return key + '=' + key2
+        //   // })
+        //   // console.log(newAttStr)
+        // })
+        // // console.log(newStartTagStr)
+        // return newStartTagStr
       })
 
       // const newFileContent = fileContent.replace(regI18n, function (match, key, index) {

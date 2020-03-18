@@ -184,46 +184,8 @@ vfs
         return match.replace(templateKey, newTemplateKey)
       })
       console.log(newFileContent)
-      // const newStartTagStr = key.replace(startTagReg, function (match, key ,index) {
-        //   // console.log(match, key, index)
-        //   const attrStr = key
-        //   if (!attrStr.trim()) return match
-        //   return match
-        //   // const newAttStr = attrStr.replace(attrReg, function (match, key, key2) {
-        //   //   // console.log(key, key2)
-        //   //   console.log(arguments)
-        //   //   // return [
-        //   //   //   key, key2
-        //   //   // ]
-        //   //   return key + '=' + key2
-        //   // })
-        //   // console.log(newAttStr)
-        // })
-        // // console.log(newStartTagStr)
-        // return newStartTagStr
-
-      // const newFileContent = fileContent.replace(regI18n, function (match, key, index) {
-      //   let result
-      //   const prefix = fileContent.slice(index - 4, index).replace('"', "'");
-      //   const subfix = fileContent.slice(index + match.length, index + match.length + 2).replace('"', "'");
-      //   // console.log('aaa', prefix, subfix)
-      //   if (prefix === "$t('" && subfix === "')") {
-      //     return key
-      //   } else if (isWrapByDoubelSlashComment(fileContent, match, index, 50)) {
-      //     return key
-      //   } else {
-      //     // console.log(letfRt(fileContent, index - 1, 50), key)
-      //     // console.log(betweenRtAndLt(fileContent, match, index, 50), match)
-      //     console.log(isWrapByDoubelSlashComment(fileContent, match, index, 50), match)
-      //     // console.log(getLinePreText(fileContent, match, index, 500), match, getLineSubfixText(fileContent, match, index, 500))
-      //     // console.log(getLineSubfixText(fileContent, match, index, 500))
-      //     // console.log(match, key, index)
-
-      //   }
-      //   return key
-      // })
-      // console.log(newFileContent)
     })
   )
   .on("end", () => {
   });
+  

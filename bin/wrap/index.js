@@ -55,12 +55,113 @@ vfs
   )
   .pipe(
     map((file, cb) => {
-      console.log(file.path)
       const fileContent = file.contents.toString();
-      const regI18n = new RegExp(/([\u4e00-\u9fa5]+)/, "g");
-      while ((tmpRegData.matches = regI18n.exec(fileContent))) {
-        console.log(tmpRegData.matches[1])
+      // 匹配中文字符的正则表达式： [\u4e00-\u9fa5] // https://www.w3cschool.cn/regexp/nck51pqj.html
+      // 匹配双字节字符(包括汉字在内)：[^\x00-\xff] // https://www.w3cschool.cn/regexp/nck51pqj.html
+      // (?!\$t\()([^\x00-\xff]+) 不已啥开头
+      // ([^\x00-\xff]+)
+      // 匹配中文
+      const regI18n = new RegExp(/([^\x00-\xff]+)/, "g");
+      // while ((tmpRegData.matches = regI18n.exec(fileContent))) {
+      //   // console.log(tmpRegData.matches)
+      //   console.log(tmpRegData.matches[1])
+      // }
+
+      // 左边是否是>
+      function letfRt (str, startIndex, range = 50) {
+        const end = startIndex - range
+        for (let i = startIndex; i >= end; i--) {
+          if (str.charAt(i) === '>') return true
+          if (!str.charAt(i).trim()) continue
+          return false
+        }
+        return false
       }
+      // 右边是否是<
+      function rightLt (str, startIndex, range = 50) {
+        const end = startIndex + range
+        for (let i = startIndex; i <= end; i++) {
+          if (str.charAt(i) === '<') return true
+          if (!str.charAt(i).trim()) continue
+          return false
+        }
+        return false
+      }
+      // 是否在 > 之间 <
+      function betweenRtAndLt (strContent, match, index, range) {
+        return letfRt(strContent, index - 1, range) && rightLt(strContent, match.length + index, range)
+      }
+
+      // 获取当前元素所在行之前的元素
+      function getLinePreText(str, match, index, range = 300) {
+        const startIndex = index - 1
+        let end = startIndex - range
+        for (let i = startIndex; i >= end; i--) {
+          if (str.charAt(i) === '\n') {
+            end = i
+            break;
+          }
+        }
+        return str.slice(end, index)
+      }
+
+      // 获取当前元素所在行之后的元素
+      function getLineSubfixText(str, match, index, range = 300) {
+        const startIndex = match.length + index
+        let end = startIndex + range
+        for (let i = startIndex; i <= end; i++) {
+          if (str.charAt(i) === '\n') {
+            end = i
+            break;
+          }
+        }
+        return str.slice(startIndex, end)
+      }
+
+      // 判定是否被双斜杆注释包裹
+      function isWrapByDoubelSlashComment (str, match, index, range = 500) {
+        const linePreText = getLinePreText(str, match ,index, range)
+        return linePreText.indexOf('//') !== -1
+      }
+
+      // 是否被$t包裹 $t("你好") 识别出来的中文
+      function isWrapByI18n (str, match, index) {
+        const prefix = fileContent.slice(index - 4, index).replace('"', "'");
+        const subfix = fileContent.slice(index + match.length, index + match.length + 2).replace('"', "'");
+        return prefix === "$t('" && subfix === "')"
+      }
+
+      const leftHtmlTagContent = new RegExp('>((?:[^\x00-\xff]|\w|[ {}])+)<', 'g')
+      
+      // 处理template
+      const templateReg = new RegExp("<template>([\\s\\S]+)<\\/template>", "i")
+      fileContent.replace(templateReg, function (match, key, index) {
+        key.replace(leftHtmlTagContent, function (match, key, index) {
+          console.log(match, key, index)
+        })
+      })
+
+      // const newFileContent = fileContent.replace(regI18n, function (match, key, index) {
+      //   let result
+      //   const prefix = fileContent.slice(index - 4, index).replace('"', "'");
+      //   const subfix = fileContent.slice(index + match.length, index + match.length + 2).replace('"', "'");
+      //   // console.log('aaa', prefix, subfix)
+      //   if (prefix === "$t('" && subfix === "')") {
+      //     return key
+      //   } else if (isWrapByDoubelSlashComment(fileContent, match, index, 50)) {
+      //     return key
+      //   } else {
+      //     // console.log(letfRt(fileContent, index - 1, 50), key)
+      //     // console.log(betweenRtAndLt(fileContent, match, index, 50), match)
+      //     console.log(isWrapByDoubelSlashComment(fileContent, match, index, 50), match)
+      //     // console.log(getLinePreText(fileContent, match, index, 500), match, getLineSubfixText(fileContent, match, index, 500))
+      //     // console.log(getLineSubfixText(fileContent, match, index, 500))
+      //     // console.log(match, key, index)
+
+      //   }
+      //   return key
+      // })
+      // console.log(newFileContent)
     })
   )
   .on("end", () => {

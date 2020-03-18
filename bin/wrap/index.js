@@ -131,21 +131,23 @@ vfs
         return prefix === "$t('" && subfix === "')"
       }
 
-      // 国际化文本，至少包含一个中文，可以包含中文数字.和空格
+      // 国际化文本，至少包含一个中文，可以包含中文数字.和空格，用户匹配
       const i18nContentReg = /(?![{}A-Za-z0-9.]+)([^\x00-\xff]|[A-Za-z0-9. ])+/g
+      // 判定是否包含中文，用于test
+      const i18nContenTestReg = /^(?![A-Za-z0-9.]+$)([^\x00-\xff]|[A-Za-z0-9. ])+$/
+      // tag的内容正则匹配
       const TagContentReg = new RegExp('>((?:[^\x00-\xff]|\w|[0-9{}.A-Za-z\\s])+)<', 'g')
-      
       // 处理template
       const templateReg = new RegExp("<template>([\\s\\S]+)<\\/template>", "i")
       // html start tag匹配正则
       const startTagReg = new RegExp(/<(?:[-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:@][-a-zA-Z0-9_:.]*(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(?:\/?)>/, 'g')
       // 属性的正则
-      const attrReg = /([a-zA-Z_][-a-zA-Z0-9_:.]*)(?:\s*=\s*(?:(?:"((?:\\.|[^"])*)")|(?:'((?:\\.|[^'])*)')|([^>\s]+)))?/g;
+      const attrReg = /([@:a-zA-Z_][-a-zA-Z0-9_.]*)(?:\s*=\s*(?:(?:"((?:\\.|[^"'])*)")|(?:'((?:\\.|[^'"])*)')))/g;
       // 前后非空白
       const nonPreSubWhiteReg = /\S.+\S/
 
-      // 过滤出template相关内容
-      fileContent.replace(templateReg, function (match, templateKey, index) {
+      // 过滤出template相关内容，处理tag内容的国际化
+      let newFileContent = fileContent.replace(templateReg, function (match, templateKey, index) {
         // 经过TagContentReg的过滤，$()"",这些关键字都不会被当作国际化文本处理
         let newTemplateKey = templateKey.replace(TagContentReg, function (match, tagContentKey, index) {
           if (!tagContentKey.trim()) return match
@@ -161,7 +163,28 @@ vfs
           })
           return match.replace(tagContentKey, newTagContentKey)
         })
-        // const newStartTagStr = key.replace(startTagReg, function (match, key ,index) {
+        return match.replace(templateKey, newTemplateKey)
+      })
+      // console.log(newFileContent)
+      // 过滤出template相关内容，处理tag属性的国际化
+      newFileContent = newFileContent.replace(templateReg, function (match, templateKey, index) {
+        // 过滤出属性 <p title="希望的田野">
+        let newTemplateKey = templateKey.replace(startTagReg, function (match, key, index) {
+          const attrStr = key
+          if (!attrStr.trim()) return match
+          const newAttStr = attrStr.replace(attrReg, function (match, name, doubleQuoteValue, singleQuoteValue) {
+            const value = doubleQuoteValue || singleQuoteValue
+            if (name.charAt(0) === '@' || name.charAt(0) === ':') return match
+            if (!i18nContenTestReg.test(value)) return match
+            // console.log(arguments)
+            return `:${name}="$t('${value}')"`
+          })
+          return match.replace(attrStr, newAttStr)
+        })
+        return match.replace(templateKey, newTemplateKey)
+      })
+      console.log(newFileContent)
+      // const newStartTagStr = key.replace(startTagReg, function (match, key ,index) {
         //   // console.log(match, key, index)
         //   const attrStr = key
         //   if (!attrStr.trim()) return match
@@ -178,7 +201,6 @@ vfs
         // })
         // // console.log(newStartTagStr)
         // return newStartTagStr
-      })
 
       // const newFileContent = fileContent.replace(regI18n, function (match, key, index) {
       //   let result

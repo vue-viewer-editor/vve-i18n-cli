@@ -135,11 +135,33 @@ vfs
       
       // 处理template
       const templateReg = new RegExp("<template>([\\s\\S]+)<\\/template>", "i")
+      // html start tag匹配正则
+      const startTagReg = new RegExp(/<(?:[-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:@][-a-zA-Z0-9_:.]*(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(?:\/?)>/, 'g')
+      // 属性的正则
+      const attrReg = /([a-zA-Z_][-a-zA-Z0-9_:.]*)(?:\s*=\s*(?:(?:"((?:\\.|[^"])*)")|(?:'((?:\\.|[^'])*)')|([^>\s]+)))?/g;
+      
       fileContent.replace(templateReg, function (match, key, index) {
-        key.replace(leftHtmlTagContent, function (match, key, index) {
-          if (!key.trim()) return key
-          console.log(match, key, index)
+        // key.replace(leftHtmlTagContent, function (match, key, index) {
+        //   if (!key.trim()) return key
+        //   console.log(match, key, index)
+        // })
+        const newStartTagStr = key.replace(startTagReg, function (match, key ,index) {
+          // console.log(match, key, index)
+          const attrStr = key
+          if (!attrStr.trim()) return match
+          return match
+          // const newAttStr = attrStr.replace(attrReg, function (match, key, key2) {
+          //   // console.log(key, key2)
+          //   console.log(arguments)
+          //   // return [
+          //   //   key, key2
+          //   // ]
+          //   return key + '=' + key2
+          // })
+          // console.log(newAttStr)
         })
+        // console.log(newStartTagStr)
+        return newStartTagStr
       })
 
       // const newFileContent = fileContent.replace(regI18n, function (match, key, index) {

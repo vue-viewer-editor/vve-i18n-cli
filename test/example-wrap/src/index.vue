@@ -1,6 +1,6 @@
 <template>
   <div>
-    <p>{{测试文字}}</p>
+    <p>测试文字</p>
     <a 
       :data="$t('您好')"
       title="希望的田野" v-bind:href="cc" @click="handleClick" checked disabled

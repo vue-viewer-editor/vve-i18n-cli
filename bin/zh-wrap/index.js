@@ -18,6 +18,11 @@ program
   .option("--cwd <path>", "工作目录")
   .option("--root-dir <path>", "国际文本所在的根目录")
   .option(
+    "--i18n-file-rules <items>",
+    "匹配含有国际化文本的文件规则",
+    commaSeparatedList
+  )
+  .option(
     "--ignore-pre-geg <items>",
     "被忽略的前缀，是个数组",
     commaSeparatedList
@@ -32,6 +37,8 @@ const config = {
   cwd: ".",
   // 根目录，国际文本所在的根目录
   rootDir: "src",
+  // 匹配含有国际化文本的文件规则
+  i18nFileRules: ["**/*.+(vue|js)"],
   // 被忽略的前缀
   ignorePreReg: [
     /t\s*\(\s*$/,
@@ -243,14 +250,9 @@ function processJsFile (fileContent) {
   return newFileContent
 }
 
-console.log(path.resolve(absoluteRootDir, '**/*.+(vue)'))
-
 function run () {
   vfs
-  .src([
-    path.resolve(absoluteRootDir, '**/*.+(vue)'),
-    path.resolve(absoluteRootDir, '**/*.+(js)')
-  ],{
+  .src(config.i18nFileRules.map(item => path.resolve(absoluteRootDir, item)),{
       dot: false
     }
   )

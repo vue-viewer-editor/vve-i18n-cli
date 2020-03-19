@@ -124,27 +124,34 @@ vfs
         return linePreText.indexOf('//') !== -1
       }
 
+      const i18nWrapPrefixReg = /\$t\s*\(\s*$/
       // 是否被$t包裹 $t("你好") 识别出来的中文
-      function isWrapByI18n (str, match, index) {
-        const prefix = fileContent.slice(index - 4, index).replace('"', "'");
-        const subfix = fileContent.slice(index + match.length, index + match.length + 2).replace('"', "'");
-        return prefix === "$t('" && subfix === "')"
+      function isWrapByI18n (str, match, index, range) {
+        const subfixText = getLineSubfixText(str, match, index, range)
+        if (subfixText.trim().charAt(0) !== ')') return false
+        const linePreText = getLinePreText(str, match ,index, range)
+        if (!i18nWrapPrefixReg.test(linePreText.trim())) return false
+        return true
       }
 
-      // 国际化文本，至少包含一个中文，可以包含中文数字.和空格，用户匹配
+      // 国际化文本，中文开头，可以包含中文数字.和空格，用户匹配
       const i18nContentReg = /(?![{}A-Za-z0-9.]+)([^\x00-\xff]|[A-Za-z0-9. ])+/g
       // 判定是否包含中文，用于test
       const i18nContenTestReg = /^(?![A-Za-z0-9.]+$)([^\x00-\xff]|[A-Za-z0-9. ])+$/
-      // tag的内容正则匹配
-      const TagContentReg = new RegExp('>((?:[^\x00-\xff]|\w|[0-9{}.A-Za-z\\s])+)<', 'g')
       // 处理template
       const templateReg = new RegExp("<template>([\\s\\S]+)<\\/template>", "i")
+      // 处理script
+      const scriptReg = new RegExp("<script>([\\s\\S]+)<\\/script>", "i")
+      // tag的内容正则匹配
+      const TagContentReg = new RegExp('>((?:[^\x00-\xff]|\w|[0-9{}.A-Za-z\\s])+)<', 'g')
       // html start tag匹配正则
       const startTagReg = new RegExp(/<(?:[-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:@][-a-zA-Z0-9_:.]*(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(?:\/?)>/, 'g')
       // 属性的正则
       const attrReg = /([@:a-zA-Z_][-a-zA-Z0-9_.]*)(?:\s*=\s*(?:(?:"((?:\\.|[^"'])*)")|(?:'((?:\\.|[^'"])*)')))/g;
       // 前后非空白
       const nonPreSubWhiteReg = /\S.+\S/
+      // 国际化字符串，被单引号或者双引号包裹，内容中文开头
+      const i18nStrReg = /"((?![{}A-Za-z0-9.]+)(?:[^\x00-\xff]|[A-Za-z0-9. ])+)"|'((?![{}A-Za-z0-9.]+)(?:[^\x00-\xff]|[A-Za-z0-9. ])+)'/g
 
       // 过滤出template相关内容，处理tag内容的国际化
       let newFileContent = fileContent.replace(templateReg, function (match, templateKey, index) {
@@ -182,6 +189,15 @@ vfs
           return match.replace(attrStr, newAttStr)
         })
         return match.replace(templateKey, newTemplateKey)
+      })
+      // console.log(newFileContent)
+      // 过滤出script相关内容，过滤出被引号包裹的中文字符串，对这种类型进行替换国际化替换
+      newFileContent = newFileContent.replace(scriptReg, function (match, scriptKey, index) {
+        let newScriptKey = scriptKey.replace(i18nStrReg, function (match, key, key2, index) {
+          if (isWrapByI18n(scriptKey, match, index, 50)) return match
+          return `this.$t(${match})`
+        })
+        return match.replace(scriptKey, newScriptKey)
       })
       console.log(newFileContent)
     })

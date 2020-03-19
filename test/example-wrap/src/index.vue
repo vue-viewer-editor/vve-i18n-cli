@@ -8,10 +8,16 @@
   </div>
 </template>
 <script>
+/**
+ * 您好
+ 吗
+ 过后打扫房间了
+ */
 export default {
   data () {
     return {
-      hope: '希望',
+      hope: '希dd望',
+      i18n: this.$t ( '您好' ),
       love: "你" // 内容
     }
   },

@@ -3,7 +3,8 @@
   "version": "1.0.4",
   "description": "generate an internationalized text resource file",
   "bin": {
-    "vve-i18n-cli": "./bin/index.js"
+    "vve-i18n-cli": "./bin/index.js",
+    "vve-i18n-zh-wrap-cli": "./bin/zh-wrap/index.js"
   },
   "files": [
     "bin"

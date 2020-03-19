@@ -18,6 +18,11 @@ program
   .option("--cwd <path>", "工作目录")
   .option("--root-dir <path>", "国际文本所在的根目录")
   .option(
+    "--config <path>",
+    "配置文件的路径，没有配置，默认路径是在${cwd}/vve-i18n-cli.config.js"
+  )
+  .option("--no-config", "是否取配置文件")
+  .option(
     "--i18n-file-rules <items>",
     "匹配含有国际化文本的文件规则",
     commaSeparatedList
@@ -37,6 +42,10 @@ const config = {
   cwd: ".",
   // 根目录，国际文本所在的根目录
   rootDir: "src",
+  // 配置文件的路径，没有配置，默认路径是在${cwd}/vve-i18n-cli.config.js
+  config: undefined,
+  // 是否取配置文件
+  noConfig: false,
   // 匹配含有国际化文本的文件规则
   i18nFileRules: ["**/*.+(vue|js)"],
   // 被忽略的前缀

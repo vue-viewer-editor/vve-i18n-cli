@@ -1,10 +1,11 @@
 <template>
   <div>
-    <p 
+    <p>{{测试文字}}</p>
+    <a 
       :data="$t('您好')"
       title="希望的田野" v-bind:href="cc" @click="handleClick" checked disabled
       data-ad='aaa'
-      :target="cc">  希望的的田野   </p>
+      :target="cc">  希望的的田野   </a>
   </div>
 </template>
 <script>

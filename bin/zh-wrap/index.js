@@ -60,8 +60,8 @@ if (!config.noConfig) {
   }
   if (fs.existsSync(configFilePath)) {
     const conf = loadConfig(configFilePath);
-    if (conf) {
-      Object.assign(config, conf.options, program);
+    if (conf && conf.options && conf.options.zhWrap) {
+      Object.assign(config, conf.options.zhWrap, program);
     }
   }
 }

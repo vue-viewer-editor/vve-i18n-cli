@@ -31,7 +31,7 @@ const config = {
   // 工作目录
   cwd: ".",
   // 根目录，国际文本所在的根目录
-  rootDir: "./test/example-wrap/src",
+  rootDir: "src",
   // 被忽略的前缀
   ignorePreReg: [
     /t\s*\(\s*$/,
@@ -242,6 +242,8 @@ function processJsFile (fileContent) {
   // console.log(newFileContent)
   return newFileContent
 }
+
+console.log(path.resolve(absoluteRootDir, '**/*.+(vue)'))
 
 function run () {
   vfs

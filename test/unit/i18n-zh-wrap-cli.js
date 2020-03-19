@@ -6,7 +6,7 @@ const path = require('path')
 const fs = require('fs')
 
 describe('i18n-zh-wrap-cli', function () {
-  this.timeout(20 * 1000)
+  this.timeout(50 * 1000)
 
   it ('zh-wrap-cli shell', function (done) {
     shelljs.exec(`node ./bin/zh-wrap/index.js --cwd ./test/example-wrap`, function (code, stdout, stderr) {

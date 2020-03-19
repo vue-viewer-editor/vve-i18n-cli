@@ -6,7 +6,7 @@ const path = require('path')
 const jsonfile = require("jsonfile");
 
 describe('i18n-cli', function () {
-  this.timeout(20 * 1000)
+  this.timeout(50 * 1000)
 
   it ('should be a function', function (done) {
     shelljs.exec(`node ./bin/index.js --cwd ./test/example -t`, function (code, stdout, stderr) {

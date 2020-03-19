@@ -228,7 +228,7 @@ function processJsFile (fileContent) {
     return `${jsI18nFuncName}(${match})`
   })
   // console.log(newFileContent)
-  return fileContent
+  return newFileContent
 }
 
 function run () {
@@ -251,12 +251,19 @@ function run () {
       } else if (extname.toLowerCase() === '.js') {
         newFileContent = processJsFile(fileContent.toString())
       }
-      console.log('解析完成', file.path)
+      if (!newFileContent) {
+        console.log('内容为空，无需处理', file.path)
+      } else if (newFileContent !== fileContent) {
+        fs.writeFileSync(file.path, newFileContent)
+        console.log('处理完成', file.path)
+      } else {
+        console.log('内容未改变，无需处理', file.path)
+      }
       cb()
     })
   )
   .on("end", () => {
-    console.log('end')
+    console.log('全部处理完成')
   });
 }
 

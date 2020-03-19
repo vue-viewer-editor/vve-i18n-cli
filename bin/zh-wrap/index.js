@@ -9,10 +9,22 @@ const map = require("map-stream");
 const path = require("path");
 const fs = require("fs");
 
+function commaSeparatedList(value, split = ",") {
+  return value.split(split).filter(item => item);
+}
+
 program
   .version(require('../../package.json').version)
   .option("--cwd <path>", "工作目录")
   .option("--root-dir <path>", "国际文本所在的根目录")
+  .option(
+    "--ignore-pre-geg <items>",
+    "被忽略的前缀，是个数组",
+    commaSeparatedList
+  )
+  .option("--i18n-import-for-js <item>", "js相关文件需要引入的国际化文件")
+  .option("--js-i18n-func-name <item>", "js相关文件需要使用国际化方法")
+  .option("--vue-i18n-func-name <item>", "vue相关文件需要使用的国际化方法")
   .parse(process.argv);
 
 const config = {
@@ -36,9 +48,7 @@ const config = {
 
 Object.assign(config, program);
 
-const { ignorePreReg, i18nImportForJs, jsI18nFuncName, vueI18nFuncName } = config
-
-const CONFIG_JS_FILENAME = "vve-i18n-wrap-cli.config.js";
+const CONFIG_JS_FILENAME = "vve-i18n-cli.config.js";
 
 const absoluteCwd = path.resolve(config.cwd);
 
@@ -55,6 +65,8 @@ if (!config.noConfig) {
     }
   }
 }
+
+const { ignorePreReg, i18nImportForJs, jsI18nFuncName, vueI18nFuncName } = config
 
 const absoluteRootDir = path.resolve(absoluteCwd, config.rootDir);
 

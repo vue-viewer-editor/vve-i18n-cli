@@ -7,11 +7,21 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Launch Program",
+      "name": "vve-i18n-cli",
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "program": "${workspaceFolder}\\bin\\index.js",
+      "program": "${workspaceFolder}/bin/index.js",
+      "args": ["--cwd", "./test/example"],
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "vve-i18n-zh-wrap-cli",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/bin/zh-wrap/index.js",
       "args": ["--cwd", "./test/example"],
     }
   ]

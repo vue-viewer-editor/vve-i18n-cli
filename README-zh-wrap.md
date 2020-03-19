@@ -11,7 +11,7 @@ vue文件
 ```vue
 <template>
   <div>
-    <p>你好, {{world}}</p>
+    <p>你好{{world}}</p>
   </div>
 </template>
 <script>
@@ -23,7 +23,6 @@ export default {
   }
 }
 </script>
-
 ```
 
 vue文件转换后
@@ -31,19 +30,37 @@ vue文件转换后
 ```vue
 <template>
   <div>
-    <p>你好, {{world}}</p>
+    <p>{{$t('你好')}}{{world}}</p>
   </div>
 </template>
 <script>
 export default {
   data () {
     return {
-      world: "世界"
+      world: this.$t("世界")
     }
   }
 }
 </script>
+```
 
+js文件
+
+```js
+const OPTIONS = [
+  { label: '希望', value: 1 },
+  { label: '爱情', value: 2 },
+]
+```
+
+js文件转换后
+
+```js
+import { i18n } from '@/i18n'
+const OPTIONS = [
+  { label: i18n.t('希望'), value: 1 },
+  { label: i18n.t('爱情'), value: 2 },
+]
 ```
 
 ## 安装

@@ -171,7 +171,7 @@ const TagContentReg = new RegExp('>((?:[^\x00-\xff]|\w|[0-9{}.A-Za-z\\s])+)<', '
 const startTagReg = new RegExp(/<(?:[-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:@][-a-zA-Z0-9_:.]*(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(?:\/?)>/, 'g')
 // 属性的正则
 const attrReg = /([@:a-zA-Z_][-a-zA-Z0-9_.]*)(?:\s*=\s*(?:(?:"((?:\\.|[^"'])*)")|(?:'((?:\\.|[^'"])*)')))/g;
-// 前后非空白
+// 前后非空白，这里必须是三个字符
 const nonPreSubWhiteReg = /\S.+\S/
 // 国际化字符串，被单引号或者双引号包裹，内容中文开头
 const i18nStrReg = /"((?![{}A-Za-z0-9.]+)(?:[^\x00-\xff]|[A-Za-z0-9. ])+)"|'((?![{}A-Za-z0-9.]+)(?:[^\x00-\xff]|[A-Za-z0-9. ])+)'/g
@@ -186,13 +186,9 @@ function processVueFile (fileContent) {
       // console.log(match, tagContentKey)
       // 经过这一层过滤，会过滤去tag内容的中文，并加上国际化文本
       const newTagContentKey = tagContentKey.replace(i18nContentReg, function (match) {
-        // 这个一层过滤，前后空格不会被包裹在国际化里面
+        const trimMatch = match.trim()
         // 例子 <p> 啦啦啦 </p>  变成 <p> {{$t('啦啦啦')}} </p>
-        const newMatch = match.replace(nonPreSubWhiteReg, function (match) {
-          // vueI18nFuncName = '$t' => `$t('${match}')`
-          return `{{${vueI18nFuncName}('${match}')}}`
-        })
-        return newMatch
+        return match.replace(trimMatch, `{{${vueI18nFuncName}('${trimMatch}')}}`)
       })
       return match.replace(tagContentKey, newTagContentKey)
     })

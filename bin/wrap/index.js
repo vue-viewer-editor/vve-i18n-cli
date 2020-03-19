@@ -20,9 +20,23 @@ const config = {
   cwd: ".",
   // 根目录，国际文本所在的根目录
   rootDir: "./test/example-wrap/src",
+  // 被忽略的前缀
+  ignorePreReg: [
+    /t\s*\(\s*$/,
+    /tl\s*\(\s*$/,
+    /console\.(?:log|error|warn|info|debug)\s*\(\s*$/,
+  ],
+  // js相关文件需要引入的国际化文件
+  i18nImportForJs: "import i18n from '@/i18n'",
+  // js相关文件需要使用国际化方法
+  jsI18nFuncName: 'i18n.t',
+  // vue相关文件需要使用的国际化方法
+  vueI18nFuncName: '$t',
 };
 
 Object.assign(config, program);
+
+const { ignorePreReg, i18nImportForJs, jsI18nFuncName, vueI18nFuncName } = config
 
 const CONFIG_JS_FILENAME = "vve-i18n-wrap-cli.config.js";
 
@@ -118,6 +132,12 @@ function isWrapByI18n (str, match, index, range) {
   return true
 }
 
+// 前缀是否满足要求
+function prefixTestReg (reg, str, match, index, range) {
+  const linePreText = getLinePreText(str, match ,index, range)
+  return new RegExp(reg).test(linePreText.trim())
+}
+
 // 国际化文本，中文开头，可以包含中文数字.和空格，用户匹配
 const i18nContentReg = /(?![{}A-Za-z0-9.]+)([^\x00-\xff]|[A-Za-z0-9. ])+/g
 // 判定是否包含中文，用于test
@@ -150,7 +170,8 @@ function processVueFile (fileContent) {
         // 这个一层过滤，前后空格不会被包裹在国际化里面
         // 例子 <p> 啦啦啦 </p>  变成 <p> {{$t('啦啦啦')}} </p>
         const newMatch = match.replace(nonPreSubWhiteReg, function (match) {
-          return `{{$t('${match}')}}`
+          // vueI18nFuncName = '$t' => `$t('${match}')`
+          return `{{${vueI18nFuncName}('${match}')}}`
         })
         return newMatch
       })
@@ -170,7 +191,8 @@ function processVueFile (fileContent) {
         if (name.charAt(0) === '@' || name.charAt(0) === ':') return match
         if (!i18nContenTestReg.test(value)) return match
         // console.log(arguments)
-        return `:${name}="$t('${value}')"`
+        // vueI18nFuncName = '$t' => `$t(${value})`
+        return `:${name}="${vueI18nFuncName}('${value}')"`
       })
       return match.replace(attrStr, newAttStr)
     })
@@ -180,29 +202,33 @@ function processVueFile (fileContent) {
   // 过滤出script相关内容，过滤出被引号包裹的中文字符串，对这种类型进行替换国际化替换
   newFileContent = newFileContent.replace(scriptReg, function (match, scriptKey, index) {
     let newScriptKey = scriptKey.replace(i18nStrReg, function (match, key, key2, index) {
-      if (isWrapByI18n(scriptKey, match, index, 50)) return match
-      return `this.$t(${match})`
+      for (let i = 0; i < ignorePreReg.length; i++) {
+        if (prefixTestReg(ignorePreReg[i], scriptKey, match, index, 50)) return match
+      }
+      // vueI18nFuncName = '$t' => `this.$t(${match})`
+      return `this.${vueI18nFuncName}(${match})`
     })
     return match.replace(scriptKey, newScriptKey)
   })
   // console.log(newFileContent)
+  return newFileContent
 }
-
-const i18nImportForJs = "import i18n from '@/i18n'"
-const jsI18nFuncName = 'i18n.t'
-const vueI18nFuncName = 't'
 
 // 解析js文件
 function processJsFile (fileContent) {
   let newFileContent = fileContent
-  if (fileContent.indexOf(i18nImportForJs) === -1) {
+  if (fileContent.indexOf(i18nImportForJs) === -1 && i18nImportForJs) {
     newFileContent = i18nImportForJs + '\n' + newFileContent
   }
   newFileContent = newFileContent.replace(i18nStrReg, function (match, key, key2, index) {
-    if (isWrapByI18n(fileContent, match, index, 50)) return match
-    return `i18n.t(${match})`
+    for (let i = 0; i < ignorePreReg.length; i++) {
+      if (prefixTestReg(ignorePreReg[i], newFileContent, match, index, 50)) return match
+    }
+    // jsI18nFuncName = 'i18n.t' => `i18n.t(${match})`
+    return `${jsI18nFuncName}(${match})`
   })
-  console.log(newFileContent)
+  // console.log(newFileContent)
+  return fileContent
 }
 
 function run () {
@@ -216,13 +242,16 @@ function run () {
   )
   .pipe(
     map((file, cb) => {
-      console.log('file',file.path)
+      console.log('开始解析', file.path)
       const extname = path.extname(file.path)
+      let fileContent = file.contents.toString()
+      let newFileContent
       if (extname.toLowerCase() === '.vue') {
-        // processVueFile(file.contents.toString())
+        newFileContent = processVueFile(fileContent)
       } else if (extname.toLowerCase() === '.js') {
-        processJsFile(file.contents.toString())
+        newFileContent = processJsFile(fileContent.toString())
       }
+      console.log('解析完成', file.path)
       cb()
     })
   )

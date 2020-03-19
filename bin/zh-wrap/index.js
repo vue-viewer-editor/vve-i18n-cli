@@ -66,7 +66,7 @@ Object.assign(config, program);
 
 const CONFIG_JS_FILENAME = "vve-i18n-cli.config.js";
 
-const absoluteCwd = path.resolve(config.cwd);
+let absoluteCwd = path.resolve(config.cwd);
 
 // 优先判断是否需要读取文件
 if (!config.noConfig) {
@@ -80,6 +80,11 @@ if (!config.noConfig) {
       Object.assign(config, conf.options.zhWrap, program);
     }
   }
+}
+
+// 制定配置文件后，cwd在配置文件中定义，则cwd就需要重新获取
+if (!program.cwd) {
+  absoluteCwd = path.resolve(config.cwd);
 }
 
 const { ignorePreReg, i18nImportForJs, jsI18nFuncName, vueI18nFuncName } = config

@@ -21,6 +21,16 @@ program
   .option("--cwd <path>", "工作目录")
   .option("--root-dir <path>", "国际文本所在的根目录")
   .option(
+    "--module-index-rules <items>",
+    "模块入口列表",
+    commaSeparatedList
+  )
+  .option(
+    "--ignore-module-index-rules <items>",
+    "忽略的模块入口列表",
+    commaSeparatedList
+  )
+  .option(
     "--i18n-file-rules <items>",
     "匹配含有国际化文本的文件规则",
     commaSeparatedList
@@ -75,6 +85,8 @@ const config = {
   // 默认所有模块，如果有传module参数，就只处理某个模块
   // '**/module-**/**/index.js'
   moduleIndexRules: ["."],
+  // 忽略模块
+  ignoreModuleIndexRules: [],
   // 匹配含有国际化文本的文件规则
   i18nFileRules: ["**/*.+(vue|js)"],
   // 不匹配含有国际化文本的文件规则
@@ -267,6 +279,7 @@ vfs
   .src(
     config.moduleIndexRules.map(item => path.resolve(absoluteRootDir, item)),
     {
+      ignore: config.ignoreModuleIndexRules.map(item => path.resolve(absoluteRootDir, item)),
       dot: false
     }
   )

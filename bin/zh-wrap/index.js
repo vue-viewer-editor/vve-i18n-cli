@@ -52,7 +52,7 @@ const config = {
   // 是否取配置文件
   noConfig: false,
   // 匹配含有国际化文本的文件规则
-  i18nFileRules: ["**/*.+(vue|js)"],``
+  i18nFileRules: ["**/*.+(vue|js)"],
   // 不匹配含有国际化文本的文件规则
   ignoreI18nFileRules: [],
   // 被忽略的前缀
@@ -271,7 +271,7 @@ function processJsFile (fileContent) {
 function run () {
   vfs
   .src(config.i18nFileRules.map(item => path.resolve(absoluteRootDir, item)),{
-      ignore: config.ignoreI18nFileRules.map(item => path.resolve(absoluteRootDir, item),
+      ignore: config.ignoreI18nFileRules.map(item => path.resolve(absoluteRootDir, item)),
       dot: false
     }
   )

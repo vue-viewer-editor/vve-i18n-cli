@@ -26,6 +26,11 @@ program
     commaSeparatedList
   )
   .option(
+    "--ignore-i18n-file-rules <items>",
+    "不匹配含有国际化文本的文件规则",
+    commaSeparatedList
+  )
+  .option(
     "--i18n-text-rules <items>",
     "国际化文本的正则表达式，正则中第一个捕获对象当做国际化文本",
     commaSeparatedList
@@ -72,6 +77,8 @@ const config = {
   moduleIndexRules: ["."],
   // 匹配含有国际化文本的文件规则
   i18nFileRules: ["**/*.+(vue|js)"],
+  // 不匹配含有国际化文本的文件规则
+  ignoreI18nFileRules: [],
   // 国际化文本的正则表达式，正则中第一个捕获对象当做国际化文本
   i18nTextRules: [/(?:[\$.])t\(['"](.+?)['"]/g],
   // 模块的国际化的json文件需要被保留下的key，即使这些组件在项目中没有被引用
@@ -271,6 +278,7 @@ vfs
 
       vfs
         .src(config.i18nFileRules.map(item => path.resolve(modulePath, item)), {
+          ignore: config.ignoreI18nFileRules.map(item => path.resolve(modulePath, item)),
           dot: false
         })
         .pipe(

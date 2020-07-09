@@ -265,7 +265,9 @@ vfs
   )
   .pipe(
     map((file, cb) => {
-      const modulePath = path.dirname(file.path);
+
+      // 如果是文件夹当前就是模块模块入口，如果不是取的所在的文件夹作为文件夹入口
+      const modulePath = fs.lstatSync(file.path).isDirectory() ? file.path : path.dirname(file.path);
 
       vfs
         .src(config.i18nFileRules.map(item => path.resolve(modulePath, item)), {

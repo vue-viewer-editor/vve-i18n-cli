@@ -16,3 +16,6 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### 1.0.1 (2019-10-03)
 - 抽取国际化文本的key值，生成国际化资源文件。详细见README.md
+
+### 2.0.2 (2020-07-09)
+- 支持中文作为key，给js和vue文件包裹国际化函数，自动变成国际化代码

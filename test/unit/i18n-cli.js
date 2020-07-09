@@ -13,7 +13,7 @@ describe('i18n-cli', function () {
       if (code !== 0) {
         throw new Error(stderr)
       }
-      const i18nData = jsonfile.readFileSync('./test/example/lang/zh.json');
+      const i18nData = jsonfile.readFileSync('./test/example/src/lang/zh.json');
       expect(JSON.stringify(i18nData)).to.equal(JSON.stringify({
         '世界': '世界',
         '你好': '你好',

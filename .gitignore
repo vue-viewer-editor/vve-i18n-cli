@@ -61,4 +61,4 @@ typings/
 .next
 
 # test example lang
-test/example/lang
+test/example/src/lang

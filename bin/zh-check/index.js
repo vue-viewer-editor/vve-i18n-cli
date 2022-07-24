@@ -168,6 +168,21 @@ function isWrapByI18n (str, match, index, range) {
   return true
 }
 
+// 是否被 这个注释包括的 /* 包裹的中文
+function isWrapByStartComment (str, match, index, range = 500) {
+  const startIndex = index - 1
+  let end = startIndex - range
+  for (let i = startIndex; (i >= (end -1) || i >= 1); i--) {
+    // 如果先遇到*/ 则表示不是被包裹
+    if (str.charAt(i - 1) === '*' && str.charAt(i) === '/') {
+      return false
+    } else if (str.charAt(i - 1) === '/' && str.charAt(i) === '*') {
+      return true
+    }
+  }
+  return false
+}
+
 // 前缀是否满足要求
 function prefixTestReg (reg, str, match, index, range) {
   const linePreText = getLinePreText(str, match ,index, range)
@@ -193,74 +208,6 @@ const nonPreSubWhiteReg = /\S.+\S/
 // 国际化字符串，被单引号或者双引号包裹，内容中文开头
 const i18nStrReg = /"((?![{}A-Za-z0-9.©×\-_!, ]+)(?:[^\x00-\xff]|[A-Za-z0-9.©×\-_!, ])+)"|'((?![{}A-Za-z0-9.©×\-_!, ]+)(?:[^\x00-\xff]|[A-Za-z0-9.©×\-_!, ])+)'/g
 
-// 解析vue文件
-function processVueFile2 (fileContent) {
-  // 过滤出template相关内容，处理tag内容的国际化
-  let newFileContent = fileContent.replace(templateReg, function (match, templateKey, index) {
-    // 经过TagContentReg的过滤，$()"",这些关键字都不会被当作国际化文本处理
-    let newTemplateKey = templateKey.replace(TagContentReg, function (match, tagContentKey, index) {
-      if (!tagContentKey.trim()) return match
-      // console.log(match, tagContentKey)
-      // 经过这一层过滤，会过滤去tag内容的中文，并加上国际化文本
-      const newTagContentKey = tagContentKey.replace(i18nContentReg, function (match) {
-        const trimMatch = match.trim()
-        // 例子 <p> 啦啦啦 </p>  变成 <p> {{$t('啦啦啦')}} </p>
-        return match.replace(trimMatch, `{{${vueI18nFuncName}('${trimMatch}')}}`)
-      })
-      return match.replace(tagContentKey, newTagContentKey)
-    })
-    return match.replace(templateKey, newTemplateKey)
-  })
-  // console.log(newFileContent)
-  // 过滤出template相关内容，处理tag属性的国际化
-  newFileContent = newFileContent.replace(templateReg, function (match, templateKey, index) {
-    // 过滤出属性 <p title="希望的田野">
-    let newTemplateKey = templateKey.replace(startTagReg, function (match, key, index) {
-      const attrStr = key
-      if (!attrStr.trim()) return match
-      const newAttStr = attrStr.replace(attrReg, function (match, name, doubleQuoteValue, singleQuoteValue) {
-        const value = doubleQuoteValue || singleQuoteValue
-        if (name.charAt(0) === '@' || name.charAt(0) === ':') return match
-        if (!i18nContenTestReg.test(value)) return match
-        // console.log(arguments)
-        // vueI18nFuncName = '$t' => `$t(${value})`
-        return `:${name}="${vueI18nFuncName}('${value}')"`
-      })
-      return match.replace(attrStr, newAttStr)
-    })
-    return match.replace(templateKey, newTemplateKey)
-  })
-  // console.log(newFileContent)
-  // 过滤出script相关内容，过滤出被引号包裹的中文字符串，对这种类型进行替换国际化替换
-  newFileContent = newFileContent.replace(scriptReg, function (match, scriptKey, index) {
-    let newScriptKey = scriptKey.replace(i18nStrReg, function (match, key, key2, index) {
-      for (let i = 0; i < ignorePreReg.length; i++) {
-        if (prefixTestReg(ignorePreReg[i], scriptKey, match, index, 50)) return match
-      }
-      // vueI18nFuncName = '$t' => `this.$t(${match})`
-      return `this.${vueI18nFuncName}(${match})`
-    })
-    return match.replace(scriptKey, newScriptKey)
-  })
-  // console.log(newFileContent)
-  return newFileContent
-}
-
-// 是否被 这个注释包括的 /* 包裹的中文
-function isWrapByStartComment (str, match, index, range = 500) {
-  const startIndex = index - 1
-  let end = startIndex - range
-  for (let i = startIndex; (i >= (end -1) || i >= 1); i--) {
-    // 如果先遇到*/ 则表示不是被包裹
-    if (str.charAt(i - 1) === '*' && str.charAt(i) === '/') {
-      return false
-    } else if (str.charAt(i - 1) === '/' && str.charAt(i) === '*') {
-      return true
-    }
-  }
-  return false
-}
-
 // 处理<script> 到 export default 中间的内容
 const scriptPreReg = new RegExp("script>([\\s\\S]+)(?:export\\s*default)", "i")
 
@@ -269,6 +216,7 @@ function processVueFile (fileContent) {
   if (match) {
     let zhMatch;
     while(zhMatch = i18nContentReg.exec(match[1])) {
+      
       // 忽略被/* */ 注释的中文
       if (isWrapByStartComment(match[1], zhMatch[0], zhMatch.index)) {
         continue;
@@ -277,6 +225,8 @@ function processVueFile (fileContent) {
       if (isWrapByDoubelSlashComment(match[1], zhMatch[0], zhMatch.index)) {
         continue;
       }
+
+      // { reason: '', text: '', rowNum: '' }
       console.log(zhMatch[0])
     }
   }

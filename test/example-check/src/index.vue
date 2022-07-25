@@ -12,7 +12,7 @@
 /**
  * 您好ccc
  * 吗
- * 过后打扫房间了
+ * "过后打扫房间了"
  */
 
 // 您好233 fsafsaf你好3
@@ -24,6 +24,11 @@ const message = "您好aa";
  */
 
 export default {
+  props: {
+    type: {
+      default: '我是属性'
+    }
+  },
   data () {
     return {
       hope: '希dd望',

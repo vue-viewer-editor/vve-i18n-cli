@@ -189,6 +189,27 @@ function prefixTestReg (reg, str, match, index, range) {
   return new RegExp(reg).test(linePreText.trim())
 }
 
+// 查找关闭的花括号关闭的位置
+function findClosingBracketMatchIndex(str, pos) {
+  if (str[pos] !== '{') {
+    throw new Error("No '{' at index " + pos)
+  }
+  let depth = 1;
+  for (let i = pos + 1; i < str.length; i++) {
+    switch (str[i]) {
+      case '{':
+        depth++
+        break;
+      case '}':
+        if (--depth === 0) {
+          return i
+        }
+        break
+    }
+  }
+  return -1
+}
+
 // 国际化文本，中文开头，可以包含中文数字.和空格，用户匹配
 const i18nContentReg = /(?![{}A-Za-z0-9.©×\-_!, ]+)([^\x00-\xff]|[A-Za-z0-9.©×\-_!, ])+/g
 // 判定是否包含中文，用于test
@@ -210,26 +231,63 @@ const i18nStrReg = /"((?![{}A-Za-z0-9.©×\-_!, ]+)(?:[^\x00-\xff]|[A-Za-z0-9.©
 
 // 处理<script> 到 export default 中间的内容
 const scriptPreReg = new RegExp("script>([\\s\\S]+)(?:export\\s*default)", "i")
+// 处理props: {} 中间的中文
+const propsReg = new RegExp("props\\s*:[\\s\\n]*{", "i")
+
 
 function processVueFile (fileContent) {
+  const resultArr = []
   let match = scriptPreReg.exec(fileContent)
   if (match) {
+    const matchContent = match[1]
     let zhMatch;
-    while(zhMatch = i18nContentReg.exec(match[1])) {
-      
+    while(zhMatch = i18nStrReg.exec(matchContent)) {
       // 忽略被/* */ 注释的中文
-      if (isWrapByStartComment(match[1], zhMatch[0], zhMatch.index)) {
+      if (isWrapByStartComment(matchContent, zhMatch[0], zhMatch.index)) {
         continue;
       }
       // 忽略被// 注释的中文
-      if (isWrapByDoubelSlashComment(match[1], zhMatch[0], zhMatch.index)) {
+      if (isWrapByDoubelSlashComment(matchContent, zhMatch[0], zhMatch.index)) {
         continue;
       }
+      resultArr.push({
+        type: 'script-pre',
+        text: zhMatch[0].slice(1, zhMatch[0].length - 1), // 去掉引号，只保留中文
+      })
+      // ``处理
+      // props中的 default 默认
+      // validator 国际化中文
+      // 其他 再想
+    }
+    let propsMatch = propsReg.exec(fileContent)
+    if (propsMatch) {
+      // console.log(propsMatch[0])
+      const propsStartIndex = propsMatch.index + propsMatch[0].length - 1
+      const propsCloseIndex = findClosingBracketMatchIndex(fileContent, propsStartIndex)
+      if (propsCloseIndex !== -1) {
+        const matchContent = fileContent.slice(propsStartIndex, propsCloseIndex)
+        let zhMatch;
+        while(zhMatch = i18nStrReg.exec(matchContent)) {
+          // 忽略被/* */ 注释的中文
+          if (isWrapByStartComment(matchContent, zhMatch[0], zhMatch.index)) {
+            continue;
+          }
+          // 忽略被// 注释的中文
+          if (isWrapByDoubelSlashComment(matchContent, zhMatch[0], zhMatch.index)) {
+            continue;
+          }
 
-      // { reason: '', text: '', rowNum: '' }
-      console.log(zhMatch[0])
+          resultArr.push({
+            type: 'props',
+            text: zhMatch[0].slice(1, zhMatch[0].length - 1), // 去掉引号，只保留中文
+          })
+        }
+      }
     }
   }
+
+
+
 }
 
 function run () {

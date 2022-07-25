@@ -229,14 +229,20 @@ const nonPreSubWhiteReg = /\S.+\S/
 // 国际化字符串，被单引号或者双引号包裹，内容中文开头
 const i18nStrReg = /"((?![{}A-Za-z0-9.©×\-_!, ]+)(?:[^\x00-\xff]|[A-Za-z0-9.©×\-_!, ])+)"|'((?![{}A-Za-z0-9.©×\-_!, ]+)(?:[^\x00-\xff]|[A-Za-z0-9.©×\-_!, ])+)'/g
 
+// 包含中文
+const zhReg = new RegExp("[\\u4E00-\\u9FFF]+", "");
+
 // 处理<script> 到 export default 中间的内容
 const scriptPreReg = new RegExp("script>([\\s\\S]+)(?:export\\s*default)", "i")
 // 处理props: {} 中间的中文
 const propsReg = new RegExp("props\\s*:[\\s\\n]*{", "i")
-
+// 处理``中间中文的处理
+const backQuoteReg = /(`[\s\S\n]+?`)/g
 
 function processVueFile (fileContent) {
   const resultArr = []
+
+  // 处理<script> 到 export default 中间的内容
   let match = scriptPreReg.exec(fileContent)
   if (match) {
     const matchContent = match[1]
@@ -254,40 +260,60 @@ function processVueFile (fileContent) {
         type: 'script-pre',
         text: zhMatch[0].slice(1, zhMatch[0].length - 1), // 去掉引号，只保留中文
       })
-      // ``处理
-      // props中的 default 默认
-      // validator 国际化中文
-      // 其他 再想
     }
-    let propsMatch = propsReg.exec(fileContent)
-    if (propsMatch) {
-      // console.log(propsMatch[0])
-      const propsStartIndex = propsMatch.index + propsMatch[0].length - 1
-      const propsCloseIndex = findClosingBracketMatchIndex(fileContent, propsStartIndex)
-      if (propsCloseIndex !== -1) {
-        const matchContent = fileContent.slice(propsStartIndex, propsCloseIndex)
-        let zhMatch;
-        while(zhMatch = i18nStrReg.exec(matchContent)) {
-          // 忽略被/* */ 注释的中文
-          if (isWrapByStartComment(matchContent, zhMatch[0], zhMatch.index)) {
-            continue;
-          }
-          // 忽略被// 注释的中文
-          if (isWrapByDoubelSlashComment(matchContent, zhMatch[0], zhMatch.index)) {
-            continue;
-          }
+  }
 
-          resultArr.push({
-            type: 'props',
-            text: zhMatch[0].slice(1, zhMatch[0].length - 1), // 去掉引号，只保留中文
-          })
+  // 处理props: {} 中间的中文
+  let propsMatch = propsReg.exec(fileContent)
+  if (propsMatch) {
+    // console.log(propsMatch[0])
+    const propsStartIndex = propsMatch.index + propsMatch[0].length - 1
+    const propsCloseIndex = findClosingBracketMatchIndex(fileContent, propsStartIndex)
+    if (propsCloseIndex !== -1) {
+      const matchContent = fileContent.slice(propsStartIndex, propsCloseIndex)
+      let zhMatch;
+      while(zhMatch = i18nStrReg.exec(matchContent)) {
+        // 忽略被/* */ 注释的中文
+        if (isWrapByStartComment(matchContent, zhMatch[0], zhMatch.index)) {
+          continue;
         }
+        // 忽略被// 注释的中文
+        if (isWrapByDoubelSlashComment(matchContent, zhMatch[0], zhMatch.index)) {
+          continue;
+        }
+
+        resultArr.push({
+          type: 'props',
+          text: zhMatch[0].slice(1, zhMatch[0].length - 1), // 去掉引号，只保留中文
+        })
       }
     }
   }
 
-
-
+  // 处理``中间中文的处理
+  let backQuoteMatch
+  while (backQuoteMatch = backQuoteReg.exec(fileContent)) {
+    if (backQuoteMatch) {
+      // 忽略被/* */ 注释的中文
+      if (isWrapByStartComment(fileContent, backQuoteMatch[0], backQuoteMatch.index)) {
+        continue;
+      }
+      // 忽略被// 注释的中文
+      if (isWrapByDoubelSlashComment(fileContent, backQuoteMatch[0], backQuoteMatch.index)) {
+        continue;
+      }
+      if (zhReg.test(backQuoteMatch[0])) {
+        resultArr.push({
+          type: 'back-quote',
+          text: backQuoteMatch[0].slice(1, backQuoteMatch[0].length - 1), // 去掉引号，只保留中文
+        })
+      }
+    }
+  }
+  // validator 国际化中文
+  
+  // 其他 再想
+  console.log(JSON.stringify(resultArr))
 }
 
 function run () {

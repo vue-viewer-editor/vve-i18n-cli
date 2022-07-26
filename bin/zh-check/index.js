@@ -183,6 +183,25 @@ function isWrapByStartComment (str, match, index, range = 500) {
   return false
 }
 
+// 是否被 这个注释是否包裹在 data {} 或者 computed 中 包裹的中文
+function isWrapByDataOrComputed (str, match, index, range = 2000) {
+  const startIndex = index - 1
+  let end = startIndex - range
+  for (let i = startIndex; (i >= (end -1) || i >= 1); i--) {
+    const subStr = str.slice(i, startIndex)
+    if (/^methods\s*:[\s\n]*{/.test(subStr)) {
+      return false
+    }
+    if (/^data\s*\(\s*\)[\s\n]*{/.test(subStr)) {
+      return true
+    }
+    if (/^computed\s*:[\s\n]*{/.test(subStr)) {
+      return true
+    }
+  }
+  return false
+}
+
 // 前缀是否满足要求
 function prefixTestReg (reg, str, match, index, range) {
   const linePreText = getLinePreText(str, match ,index, range)
@@ -238,6 +257,8 @@ const scriptPreReg = new RegExp("script>([\\s\\S]+)(?:export\\s*default)", "i")
 const propsReg = new RegExp("props\\s*:[\\s\\n]*{", "i")
 // 处理``中间中文的处理
 const backQuoteReg = /(`[\s\S\n]+?`)/g
+// 处理validator的引用问题
+const validatorReg = /(validator\s*\(\s*rule\s*,\s*(?:value|val)\s*,\s*(?:callback|cb)\s*\)[\s\n]*{)/g
 
 function processVueFile (fileContent) {
   const resultArr = []
@@ -311,9 +332,37 @@ function processVueFile (fileContent) {
     }
   }
   // validator 国际化中文
-  
-  // 其他 再想
-  console.log(JSON.stringify(resultArr))
+  let validatorMatch
+  while (validatorMatch = validatorReg.exec(fileContent)) {
+
+    // 只处理包裹在data和computed中的方法
+    if (isWrapByDataOrComputed(fileContent, validatorMatch[0], validatorMatch.index)) {
+
+      // console.log(propsMatch[0])
+      const validatorStartIndex = validatorMatch.index + validatorMatch[0].length - 1
+      const validatorCloseIndex = findClosingBracketMatchIndex(fileContent, validatorStartIndex)
+      if (validatorCloseIndex !== -1) {
+        const matchContent = fileContent.slice(validatorStartIndex, validatorCloseIndex)
+
+        let zhMatch
+        while(zhMatch = i18nStrReg.exec(matchContent)) {
+          // 忽略被/* */ 注释的中文
+          if (isWrapByStartComment(matchContent, zhMatch[0], zhMatch.index)) {
+            continue;
+          }
+          // 忽略被// 注释的中文
+          if (isWrapByDoubelSlashComment(matchContent, zhMatch[0], zhMatch.index)) {
+            continue;
+          }
+          resultArr.push({
+            type: 'validator',
+            text: zhMatch[0].slice(1, zhMatch[0].length - 1), // 去掉引号，只保留中文
+          })
+          console.log(zhMatch[0].slice(1, zhMatch[0].length - 1))
+        }
+      }
+    }
+  }
 }
 
 function run () {

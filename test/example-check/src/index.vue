@@ -23,12 +23,6 @@ const aa = `引号`
 
 const aa2 = `引号${message}您好`
 
-const aa3 = `引号${message}`
-
-const aa3 = `ccc引号${message}好`
-
-const aa4 = `ccc${message}`
-
 const aa3 = `
 您好22${message}
 `
@@ -47,7 +41,24 @@ export default {
     return {
       hope: '希dd望',
       i18n: this.$t ( '您好' ),
-      love: "你" // 内容
+      love: "你", // 内容
+      rules: [
+        { validator (rule, val, callback) {
+          var aa = '您好么'
+        }}
+      ]
+    }
+  },
+  computed: {
+    cccRule () {
+      return { validator (rule, val, callback) {
+          var aa = '您好么33'
+        }}
+    }
+  },
+  methods: {
+    ccvalidator (rule, val, callback) {
+          var aa = '您好么22'
     }
   },
   computed: {

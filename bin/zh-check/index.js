@@ -32,14 +32,6 @@ program
     "不匹配含有国际化文本的文件规则",
     commaSeparatedList
   )
-  .option(
-    "--ignore-pre-geg <items>",
-    "被忽略的前缀，是个数组",
-    commaSeparatedList
-  )
-  .option("--i18n-import-for-js <item>", "js相关文件需要引入的国际化文件")
-  .option("--js-i18n-func-name <item>", "js相关文件需要使用国际化方法")
-  .option("--vue-i18n-func-name <item>", "vue相关文件需要使用的国际化方法")
   .parse(process.argv);
 
 const config = {
@@ -55,14 +47,6 @@ const config = {
   i18nFileRules: ["**/*.+(vue)"],
   // 不匹配含有国际化文本的文件规则
   ignoreI18nFileRules: [],
-  // 被忽略的前缀
-  ignorePreReg: [
-    new RegExp("//.+"),
-  ],
-  // 国际化文本的正则表达式，正则中第一个捕获对象当做国际化文本
-  i18nTextRules: [
-    /(?:[\$.])t\(['"](.+?)['"]/g
-  ],
 };
 
 Object.assign(config, program);
@@ -100,31 +84,6 @@ const absoluteRootDir = path.resolve(absoluteCwd, config.rootDir);
 // ([^\x00-\xff]+)
 // 匹配中文
 const regI18n = new RegExp(/([^\x00-\xff]+)/, "g");
-
-// 左边是否是>
-function letfRt (str, startIndex, range = 50) {
-  const end = startIndex - range
-  for (let i = startIndex; i >= end; i--) {
-    if (str.charAt(i) === '>') return true
-    if (!str.charAt(i).trim()) continue
-    return false
-  }
-  return false
-}
-// 右边是否是<
-function rightLt (str, startIndex, range = 50) {
-  const end = startIndex + range
-  for (let i = startIndex; i <= end; i++) {
-    if (str.charAt(i) === '<') return true
-    if (!str.charAt(i).trim()) continue
-    return false
-  }
-  return false
-}
-// 是否在 > 之间 <
-function betweenRtAndLt (strContent, match, index, range) {
-  return letfRt(strContent, index - 1, range) && rightLt(strContent, match.length + index, range)
-}
 
 // 获取当前元素所在行之前的元素
 function getLinePreText(str, match, index, range = 300) {
@@ -231,20 +190,10 @@ function findClosingBracketMatchIndex(str, pos) {
 
 // 国际化文本，中文开头，可以包含中文数字.和空格，用户匹配
 const i18nContentReg = /(?![{}A-Za-z0-9.©×\-_!, ]+)([^\x00-\xff]|[A-Za-z0-9.©×\-_!, ])+/g
-// 判定是否包含中文，用于test
-const i18nContenTestReg = /^(?![A-Za-z0-9.©×\-_!, ]+$)([^\x00-\xff]|[A-Za-z0-9.©×\-_!, ])+$/
 // 处理template
 const templateReg = new RegExp("<template>([\\s\\S]+)<\\/template>", "i")
 // 处理script
 const scriptReg = new RegExp("<script>([\\s\\S]+)<\\/script>", "i")
-// tag的内容正则匹配
-const TagContentReg = new RegExp('>((?:[^\x00-\xff]|\w|[0-9{}.A-Za-z\\s])+)<', 'g')
-// html start tag匹配正则
-const startTagReg = new RegExp(/<(?:[-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:@][-a-zA-Z0-9_:.]*(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(?:\/?)>/, 'g')
-// 属性的正则
-const attrReg = /([@:a-zA-Z_][-a-zA-Z0-9_.]*)(?:\s*=\s*(?:(?:"((?:\\.|[^"'])*)")|(?:'((?:\\.|[^'"])*)')))/g;
-// 前后非空白，这里必须是三个字符
-const nonPreSubWhiteReg = /\S.+\S/
 // 国际化字符串，被单引号或者双引号包裹，内容中文开头
 const i18nStrReg = /"((?![{}A-Za-z0-9.©×\-_!, ]+)(?:[^\x00-\xff]|[A-Za-z0-9.©×\-_!, ])+)"|'((?![{}A-Za-z0-9.©×\-_!, ]+)(?:[^\x00-\xff]|[A-Za-z0-9.©×\-_!, ])+)'/g
 

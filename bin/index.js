@@ -73,6 +73,10 @@ program
     "是否强制翻译，即已翻译修改的内容，也重新用翻译生成"
   )
   .option("--translate-language <items>", "翻译的语言", commaSeparatedList)
+  .option(
+    "--translate-use-pin-yin",
+    "非中文使用拼音来来翻译"
+  )
   .option("--copy-index", "模块下${outDir}/index.js文件不存在才拷贝index.js")
   .option("--force-copy-index", "是否强制拷贝最新index.js")
   .parse(process.argv);
@@ -121,6 +125,8 @@ const config = {
   forceTranslate: false,
   // 翻译的语言
   translateLanguage: ["zh", "en"],
+  // 非中文使用拼音来来翻译
+  translateUsePinYin: false,
   // 模块下${outDir}/index.js文件不存在才拷贝index.js
   copyIndex: false,
   // 是否强制拷贝最新index.js
@@ -214,13 +220,15 @@ async function makeNewData(key, lang, originData) {
       translateRst = await translateArr(
         config.translateFromLang,
         lang,
-        newAddDataArr
+        newAddDataArr,
+        config.translateUsePinYin, // 是否翻译用拼音替代
       );
     } else if (config.translateLanguage.includes(lang)) {
       translateRst = await translateArr(
         config.translateFromLang,
         lang,
-        newAddDataArr
+        newAddDataArr,
+        config.translateUsePinYin, // 是否翻译用拼音替代
       );
     }
     Object.assign(newData, translateRst);

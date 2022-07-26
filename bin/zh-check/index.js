@@ -358,14 +358,16 @@ function processVueFile (fileContent) {
             type: 'validator',
             text: zhMatch[0].slice(1, zhMatch[0].length - 1), // 去掉引号，只保留中文
           })
-          console.log(zhMatch[0].slice(1, zhMatch[0].length - 1))
         }
       }
     }
   }
+  // 其他待处理
+  return resultArr
 }
 
 function run () {
+  const result = {}
   vfs
   .src(config.i18nFileRules.map(item => path.resolve(absoluteRootDir, item)),{
       ignore: config.ignoreI18nFileRules.map(item => path.resolve(absoluteRootDir, item)),
@@ -377,15 +379,27 @@ function run () {
       console.log('开始解析', file.path)
       const extname = path.extname(file.path)
       let fileContent = file.contents.toString()
-      let newFileContent
       if (extname.toLowerCase() === '.vue') {
-        newFileContent = processVueFile(fileContent)
+        const resultArr = processVueFile(fileContent)
+        if (resultArr.length) {
+          result[file.path] = resultArr
+        }
       }
       cb()
     })
   )
   .on("end", () => {
     console.log('全部处理完成')
+    const filesPathArr = Object.keys(result)
+    if (filesPathArr.length) {
+      for (let i = 0; i < filesPathArr.length; i++) {
+        const path = filesPathArr[i]
+        console.log(`文件：${path}`)
+        for (let j = 0; j < result[path].length; j++) {
+          console.log(JSON.stringify(result[path][j]))
+        }
+      }
+    }
   });
 }
 

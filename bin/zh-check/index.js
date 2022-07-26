@@ -44,7 +44,7 @@ const config = {
   // 是否取配置文件
   noConfig: false,
   // 匹配含有国际化文本的文件规则
-  i18nFileRules: ["**/*.+(vue)"],
+  i18nFileRules: ["**/*.+(vue|js)"],
   // 不匹配含有国际化文本的文件规则
   ignoreI18nFileRules: [],
 };
@@ -315,6 +315,33 @@ function processVueFile (fileContent) {
   return resultArr
 }
 
+function processJsFile (fileContent) {
+  const resultArr = []
+
+  // 处理``中间中文的处理
+  let backQuoteMatch
+  while (backQuoteMatch = backQuoteReg.exec(fileContent)) {
+    if (backQuoteMatch) {
+      // 忽略被/* */ 注释的中文
+      if (isWrapByStartComment(fileContent, backQuoteMatch[0], backQuoteMatch.index)) {
+        continue;
+      }
+      // 忽略被// 注释的中文
+      if (isWrapByDoubelSlashComment(fileContent, backQuoteMatch[0], backQuoteMatch.index)) {
+        continue;
+      }
+      if (zhReg.test(backQuoteMatch[0])) {
+        resultArr.push({
+          type: 'back-quote',
+          text: backQuoteMatch[0].slice(1, backQuoteMatch[0].length - 1), // 去掉引号，只保留中文
+        })
+      }
+    }
+  }
+  // 其他待处理
+  return resultArr
+}
+
 function run () {
   const result = {}
   vfs
@@ -330,6 +357,11 @@ function run () {
       let fileContent = file.contents.toString()
       if (extname.toLowerCase() === '.vue') {
         const resultArr = processVueFile(fileContent)
+        if (resultArr.length) {
+          result[file.path] = resultArr
+        }
+      } else if (extname.toLowerCase() === '.js') {
+        const resultArr = processJsFile(fileContent)
         if (resultArr.length) {
           result[file.path] = resultArr
         }

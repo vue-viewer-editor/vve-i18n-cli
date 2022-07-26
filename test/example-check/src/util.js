@@ -1,0 +1,1 @@
+var message = `反引号在在JS文件中`

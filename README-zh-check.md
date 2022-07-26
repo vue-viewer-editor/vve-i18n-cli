@@ -143,7 +143,7 @@ program
 module.exports = {
   zhWrap: {
     rootDir: 'src',
-    i18nFileRules: ["**/*.+(vue)"],
+    i18nFileRules: ["**/*.+(vue|js)"],
   }
 }
 ```
@@ -162,7 +162,7 @@ const config = {
   // 是否取配置文件
   noConfig: false,
   // 匹配含有国际化文本的文件规则
-  i18nFileRules: ["**/*.+(vue)"],
+  i18nFileRules: ["**/*.+(vue|js)"],
   // 不匹配含有国际化文本的文件规则
   ignoreI18nFileRules: [],
 };

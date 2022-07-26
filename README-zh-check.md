@@ -141,7 +141,7 @@ program
 
 ```javascript
 module.exports = {
-  zhWrap: {
+  zhCheck: {
     rootDir: 'src',
     i18nFileRules: ["**/*.+(vue|js)"],
   }

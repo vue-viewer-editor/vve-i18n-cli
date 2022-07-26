@@ -117,6 +117,11 @@ function isWrapByDoubelSlashComment (str, match, index, range = 500) {
   return linePreText.indexOf('//') !== -1
 }
 
+// 是否有一些关键词
+function hasSomeKeyword (str, keywords = ['var', 'let', 'const', 'new Error']) {
+  return keywords.some((item) => str.indexOf(item) !== -1) 
+}
+
 const i18nWrapPrefixReg = /t\s*\(\s*$/
 // 是否被$t包裹 $t("你好") 识别出来的中文
 function isWrapByI18n (str, match, index, range) {
@@ -272,6 +277,10 @@ function processVueFile (fileContent) {
       if (isWrapByDoubelSlashComment(fileContent, backQuoteMatch[0], backQuoteMatch.index)) {
         continue;
       }
+      // 是否包含一些关键字，如果是，则不处理
+      if (hasSomeKeyword(backQuoteMatch[0])) {
+        continue;
+      }
       if (zhReg.test(backQuoteMatch[0])) {
         resultArr.push({
           type: 'back-quote',
@@ -328,6 +337,10 @@ function processJsFile (fileContent) {
       }
       // 忽略被// 注释的中文
       if (isWrapByDoubelSlashComment(fileContent, backQuoteMatch[0], backQuoteMatch.index)) {
+        continue;
+      }
+      // 是否包含一些关键字，如果是，则不处理
+      if (hasSomeKeyword(backQuoteMatch[0])) {
         continue;
       }
       if (zhReg.test(backQuoteMatch[0])) {

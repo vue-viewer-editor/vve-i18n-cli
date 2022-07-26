@@ -17,15 +17,9 @@
 
 // 您好233 fsafsaf你好3
 
-const message = "您好aa";
+const message1 = "您好"
 
-const aa = `引号`
-
-const aa2 = `引号${message}您好`
-
-const aa3 = `
-您好22${message}
-`
+const message2 = `引号`
 
 /**
  * 12312afsa你好22
@@ -43,23 +37,17 @@ export default {
       i18n: this.$t ( '您好' ),
       love: "你", // 内容
       rules: [
-        { validator (rule, val, callback) {
-          var aa = '您好么'
-        }}
+        { 
+          validator (rule, val, callback) {
+            callback(new Error("请输入"))
+          }
+        }
       ]
     }
   },
   computed: {
-    cccRule () {
-      return { validator (rule, val, callback) {
-          var aa = '您好么33'
-        }}
-    }
   },
   methods: {
-    ccvalidator (rule, val, callback) {
-          var aa = '您好么22'
-    }
   },
   computed: {
     world () {

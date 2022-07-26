@@ -348,6 +348,8 @@ function run () {
           console.log(JSON.stringify(result[path][j]))
         }
       }
+    } else {
+      console.log('恭喜，检测通过')
     }
   });
 }

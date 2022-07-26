@@ -1,11 +1,11 @@
 <template>
   <div>
-    <p>测试文字</p>
+    <p>{{$t('测试文字')}}</p>
     <a 
       :data="$t('您好')"
-      title="希望的田野" v-bind:href="cc" @click="handleClick" checked disabled
+      :title="$t('希望的田野')" v-bind:href="cc" @click="handleClick" checked disabled
       data-ad='aaa'
-      :target="cc">  希望的的田野   </a>
+      :target="cc">  {{$t('希望的的田野')}}   </a>
   </div>
 </template>
 <script>
@@ -17,14 +17,14 @@
 export default {
   data () {
     return {
-      hope: '希dd望',
+      hope: this.$t('希dd望'),
       i18n: this.$t ( '您好' ),
-      love: "你" // 内容
+      love: this.$t("你") // 内容
     }
   },
   computed: {
     world () {
-      return '世界'
+      return this.$t('世界')
     }
   }
 }

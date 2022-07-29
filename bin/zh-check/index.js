@@ -202,7 +202,7 @@ const scriptReg = new RegExp("<script>([\\s\\S]+)<\\/script>", "i")
 // 国际化字符串，被单引号或者双引号包裹，内容中文开头
 const i18nStrReg = /"([^"{}\n]*[^\x00-\xff]+[^"{}\n]*)"|'([^'{}\n]*[^\x00-\xff]+[^'{}\n]*)'/g
 // 中文做key的正则
-const zhKeyReg = /['"]?([\u4e00-\u9fa5]+)['"]?\s*:\s['"`]/g
+const zhKeyReg = /['"]?([\u4e00-\u9fa5]+)['"]?\s*:\s(?:['"`]|(?:this.)|(?:i18n.))/g
 
 // 包含中文
 const zhReg = new RegExp("[\\u4E00-\\u9FFF]+", "");

@@ -120,7 +120,7 @@ const config = {
   // 不匹配含有国际化文本的文件规则
   ignoreI18nFileRules: [],
   // 国际化文本的正则表达式，正则中第一个捕获对象当做国际化文本
-  i18nTextRules: [/(?:[\$.])t\(['"](.+?)['"]/g],
+  i18nTextRules: [/(?:[\$.])t\([\s\n]*['"](.+?)['"]/g],
   // 模块的国际化的json文件需要被保留下的key，即使这些组件在项目中没有被引用
   // 规则可以是一个字符串，正则，或者是函数
   keepKeyRules: [
@@ -149,6 +149,8 @@ const config = {
   forceTranslate: false,
   // 翻译的语言
   translateLanguage: ["zh", "en"],
+  // 非中文使用拼音来来翻译
+  translateUsePinYin: false,
   // 模块下${outDir}/index.js文件不存在才拷贝index.js
   copyIndex: false,
   // 是否强制拷贝最新index.js

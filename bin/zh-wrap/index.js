@@ -180,15 +180,15 @@ function prefixTestReg (reg, str, match, index, range) {
 }
 
 // 国际化文本，中文开头，可以包含中文数字.和空格，用户匹配
-const i18nContentReg = /(?![{}A-Za-z0-9.©×\-_!, ]+)([^\x00-\xff]|[A-Za-z0-9.©×\-_!, ])+/g
+const i18nContentReg = /([^"{}\n]*[^\u4e00-\u9fa5]+[^"{}\n]*)|([^'{}\n]*[^\u4e00-\u9fa5]+[^{}'\n]*)/g
 // 判定是否包含中文，用于test
-const i18nContenTestReg = /^(?![A-Za-z0-9.©×\-_!, ]+$)([^\x00-\xff]|[A-Za-z0-9.©×\-_!, ])+$/
+const i18nContenTestReg = /([^"{}\n]*[^\u4e00-\u9fa5]+[^"{}\n]*)|([^'{}\n]*[^\u4e00-\u9fa5]+[^{}'\n]*)/
 // 处理template
 const templateReg = new RegExp("<template>([\\s\\S]+)<\\/template>", "i")
 // 处理script
 const scriptReg = new RegExp("<script>([\\s\\S]+)<\\/script>", "i")
 // tag的内容正则匹配
-const TagContentReg = new RegExp('>((?:[^\x00-\xff]|\w|[0-9{}.A-Za-z\\s])+)<', 'g')
+const TagContentReg = new RegExp('>((?:[^\u4e00-\u9fa5]|\w|[0-9{}.A-Za-z\\s])+)<', 'g')
 // html start tag匹配正则
 const startTagReg = new RegExp(/<(?:[-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:@][-a-zA-Z0-9_:.]*(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(?:\/?)>/, 'g')
 // 属性的正则
@@ -196,7 +196,7 @@ const attrReg = /([@:a-zA-Z_][-a-zA-Z0-9_.]*)(?:\s*=\s*(?:(?:"((?:\\.|[^"'])*)")
 // 前后非空白，这里必须是三个字符
 const nonPreSubWhiteReg = /\S.+\S/
 // 国际化字符串，被单引号或者双引号包裹，内容中文开头
-const i18nStrReg = /"((?![{}A-Za-z0-9.©×\-_!, ]+)(?:[^\x00-\xff]|[A-Za-z0-9.©×\-_!, ])+)"|'((?![{}A-Za-z0-9.©×\-_!, ]+)(?:[^\x00-\xff]|[A-Za-z0-9.©×\-_!, ])+)'/g
+const i18nStrReg = /"([^"{}\n]*[^\u4e00-\u9fa5]+[^"{}\n]*)"|'([^'{}\n]*[^\u4e00-\u9fa5]+[^'{}\n]*)'/g
 
 // 解析vue文件
 function processVueFile (fileContent) {
@@ -226,7 +226,7 @@ function processVueFile (fileContent) {
       const newAttStr = attrStr.replace(attrReg, function (match, name, doubleQuoteValue, singleQuoteValue) {
         const value = doubleQuoteValue || singleQuoteValue
         if (name.charAt(0) === '@' || name.charAt(0) === ':') return match
-        if (!i18nContenTestReg.test(value)) return match
+        if (!i18nContentReg.test(value)) return match
         // console.log(arguments)
         // vueI18nFuncName = '$t' => `$t(${value})`
         return `:${name}="${vueI18nFuncName}('${value}')"`

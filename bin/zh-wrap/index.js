@@ -180,9 +180,9 @@ function prefixTestReg (reg, str, match, index, range) {
 }
 
 // 国际化文本，中文开头，可以包含中文数字.和空格，用户匹配
-const i18nContentReg = /([^"{}\n]*[^\x00-\xff]+[^"{}\n]*)|([^'{}\n]*[^\x00-\xff]+[^{}'\n]*)/g
+const i18nContentReg = /((?:[^"{}\n+](?:\/\*)(?:\/\/))*[^\x00-\xff]+[^"{}\n]*)|((?:[^'{}\n+](?:\/\*)(?:\/\/))*[^\x00-\xff]+[^'{}\n]*)/g
 // 判定是否包含中文，用于test
-const i18nContenTestReg = /([^"{}\n]*[^\x00-\xff]+[^"{}\n]*)|([^'{}\n]*[^\x00-\xff]+[^{}'\n]*)/
+const i18nContenTestReg = /((?:[^"{}\n+](?:\/\*)(?:\/\/))*[^\x00-\xff]+[^"{}\n]*)|((?:[^'{}\n+](?:\/\*)(?:\/\/))*[^\x00-\xff]+[^'{}\n]*)/
 // 处理template
 const templateReg = new RegExp("<template>([\\s\\S]+)<\\/template>", "i")
 // 处理script
@@ -196,7 +196,7 @@ const attrReg = /([@:a-zA-Z_][-a-zA-Z0-9_.]*)(?:\s*=\s*(?:(?:"((?:\\.|[^"'])*)")
 // 前后非空白，这里必须是三个字符
 const nonPreSubWhiteReg = /\S.+\S/
 // 国际化字符串，被单引号或者双引号包裹，内容中文开头
-const i18nStrReg = /"([^"{}\n]*[^\x00-\xff]+[^"{}\n]*)"|'([^'{}\n]*[^\x00-\xff]+[^'{}\n]*)'/g
+const i18nStrReg = /"((?:[^"{}\n+](?:\/\*)(?:\/\/))*[^\x00-\xff]+[^"{}\n]*)"|'((?:[^'{}\n+](?:\/\*)(?:\/\/))*[^\x00-\xff]+[^'{}\n]*)'/g
 
 // 解析vue文件
 function processVueFile (fileContent) {

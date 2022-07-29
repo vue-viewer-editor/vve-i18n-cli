@@ -333,10 +333,13 @@ function processVueFile (fileContent) {
     if (isWrapByDoubelSlashComment(fileContent, zhKeyMatch[0], zhKeyMatch.index)) {
       continue;
     }
-    resultArr.push({
-      type: 'zh-key',
-      text: zhKeyMatch[1], // 去掉引号，只保留中文
-    })
+    // 只处理包裹在data和computed中的方法
+    if (isWrapByDataOrComputed(fileContent, zhKeyMatch[0], zhKeyMatch.index)) {
+      resultArr.push({
+        type: 'zh-key',
+        text: zhKeyMatch[1], // 去掉引号，只保留中文
+      })
+    }
   }
   
   // 其他待处理
@@ -381,10 +384,13 @@ function processJsFile (fileContent) {
     if (isWrapByDoubelSlashComment(fileContent, zhKeyMatch[0], zhKeyMatch.index)) {
       continue;
     }
-    resultArr.push({
-      type: 'zh-key',
-      text: zhKeyMatch[1], // 去掉引号，只保留中文
-    })
+    // 只处理包裹在data和computed中的方法
+    if (isWrapByDataOrComputed(fileContent, zhKeyMatch[0], zhKeyMatch.index)) {
+      resultArr.push({
+        type: 'zh-key',
+        text: zhKeyMatch[1], // 去掉引号，只保留中文
+      })
+    }
   }
   // 其他待处理
   return resultArr

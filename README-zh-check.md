@@ -47,7 +47,10 @@ export default {
             callback(new Error("请输入"))
           }
         }
-      ]
+      ],
+      obj: {
+        其他: 'aaa'
+      }
     }
   },
   computed: {
@@ -67,6 +70,7 @@ export default {
 {"type":"props","text":"我是属性"}
 {"type":"back-quote","text":"引号"}
 {"type":"validator","text":"请输入"}
+{"type":"zh-key","text":"其他"}
 ```
 
 ## 返回类型说明

@@ -200,7 +200,9 @@ const templateReg = new RegExp("<template>([\\s\\S]+)<\\/template>", "i")
 // 处理script
 const scriptReg = new RegExp("<script>([\\s\\S]+)<\\/script>", "i")
 // 国际化字符串，被单引号或者双引号包裹，内容中文开头
-const i18nStrReg = /"([^"{}\n]*[^\u4e00-\u9fa5]+[^"{}\n]*)"|'([^'{}\n]*[^\u4e00-\u9fa5]+[^'{}\n]*)'/g
+const i18nStrReg = /"([^"{}\n]*[^\x00-\xff]+[^"{}\n]*)"|'([^'{}\n]*[^\x00-\xff]+[^'{}\n]*)'/g
+// 中文做key的正则
+const zhKeyReg = /['"]?([\u4e00-\u9fa5]+)['"]?\s*:/g
 
 // 包含中文
 const zhReg = new RegExp("[\\u4E00-\\u9FFF]+", "");
@@ -320,6 +322,23 @@ function processVueFile (fileContent) {
       }
     }
   }
+  // 处理中文做key
+  let zhKeyMatch
+  while (zhKeyMatch = zhKeyReg.exec(fileContent)) {
+    // 忽略被/* */ 注释的中文
+    if (isWrapByStartComment(fileContent, zhKeyMatch[0], zhKeyMatch.index)) {
+      continue;
+    }
+    // 忽略被// 注释的中文
+    if (isWrapByDoubelSlashComment(fileContent, zhKeyMatch[0], zhKeyMatch.index)) {
+      continue;
+    }
+    resultArr.push({
+      type: 'zh-key',
+      text: zhKeyMatch[1], // 去掉引号，只保留中文
+    })
+  }
+  
   // 其他待处理
   return resultArr
 }
@@ -350,6 +369,22 @@ function processJsFile (fileContent) {
         })
       }
     }
+  }
+  // 处理中文做key
+  let zhKeyMatch
+  while (zhKeyMatch = zhKeyReg.exec(fileContent)) {
+    // 忽略被/* */ 注释的中文
+    if (isWrapByStartComment(fileContent, zhKeyMatch[0], zhKeyMatch.index)) {
+      continue;
+    }
+    // 忽略被// 注释的中文
+    if (isWrapByDoubelSlashComment(fileContent, zhKeyMatch[0], zhKeyMatch.index)) {
+      continue;
+    }
+    resultArr.push({
+      type: 'zh-key',
+      text: zhKeyMatch[1], // 去掉引号，只保留中文
+    })
   }
   // 其他待处理
   return resultArr

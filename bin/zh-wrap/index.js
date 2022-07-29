@@ -180,15 +180,15 @@ function prefixTestReg (reg, str, match, index, range) {
 }
 
 // 国际化文本，中文开头，可以包含中文数字.和空格，用户匹配
-const i18nContentReg = /([^"{}\n]*[^\u4e00-\u9fa5]+[^"{}\n]*)|([^'{}\n]*[^\u4e00-\u9fa5]+[^{}'\n]*)/g
+const i18nContentReg = /([^"{}\n]*[^\x00-\xff]+[^"{}\n]*)|([^'{}\n]*[^\x00-\xff]+[^{}'\n]*)/g
 // 判定是否包含中文，用于test
-const i18nContenTestReg = /([^"{}\n]*[^\u4e00-\u9fa5]+[^"{}\n]*)|([^'{}\n]*[^\u4e00-\u9fa5]+[^{}'\n]*)/
+const i18nContenTestReg = /([^"{}\n]*[^\x00-\xff]+[^"{}\n]*)|([^'{}\n]*[^\x00-\xff]+[^{}'\n]*)/
 // 处理template
 const templateReg = new RegExp("<template>([\\s\\S]+)<\\/template>", "i")
 // 处理script
 const scriptReg = new RegExp("<script>([\\s\\S]+)<\\/script>", "i")
 // tag的内容正则匹配
-const TagContentReg = new RegExp('>((?:[^\u4e00-\u9fa5]|\w|[0-9{}.A-Za-z\\s])+)<', 'g')
+const TagContentReg = new RegExp('>((?:[^\x00-\xff]|\w|[0-9{}.A-Za-z\\s])+)<', 'g')
 // html start tag匹配正则
 const startTagReg = new RegExp(/<(?:[-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:@][-a-zA-Z0-9_:.]*(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(?:\/?)>/, 'g')
 // 属性的正则
@@ -196,7 +196,7 @@ const attrReg = /([@:a-zA-Z_][-a-zA-Z0-9_.]*)(?:\s*=\s*(?:(?:"((?:\\.|[^"'])*)")
 // 前后非空白，这里必须是三个字符
 const nonPreSubWhiteReg = /\S.+\S/
 // 国际化字符串，被单引号或者双引号包裹，内容中文开头
-const i18nStrReg = /"([^"{}\n]*[^\u4e00-\u9fa5]+[^"{}\n]*)"|'([^'{}\n]*[^\u4e00-\u9fa5]+[^'{}\n]*)'/g
+const i18nStrReg = /"([^"{}\n]*[^\x00-\xff]+[^"{}\n]*)"|'([^'{}\n]*[^\x00-\xff]+[^'{}\n]*)'/g
 
 // 解析vue文件
 function processVueFile (fileContent) {

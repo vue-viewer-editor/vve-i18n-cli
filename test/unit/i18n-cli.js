@@ -9,7 +9,7 @@ describe('i18n-cli', function () {
   this.timeout(50 * 1000)
 
   it ('should be a function', function (done) {
-    shelljs.exec(`node ./bin/index.js --cwd ./test/example -t`, function (code, stdout, stderr) {
+    shelljs.exec(`node ./bin/index.js --cwd ./test/example`, function (code, stdout, stderr) {
       if (code !== 0) {
         throw new Error(stderr)
       }

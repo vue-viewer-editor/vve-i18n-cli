@@ -37,6 +37,11 @@ program
     "被忽略的前缀，是个数组",
     commaSeparatedList
   )
+  .option(
+    "--ignore-text <items>",
+    "被忽略的文本，是个数组",
+    commaSeparatedList
+  )
   .option("--i18n-import-for-js <item>", "js相关文件需要引入的国际化文件")
   .option("--js-i18n-func-name <item>", "js相关文件需要使用国际化方法")
   .option("--vue-i18n-func-name <item>", "vue相关文件需要使用的国际化方法")
@@ -62,6 +67,8 @@ const config = {
     /console\.(?:log|error|warn|info|debug)\s*\(\s*$/,
     new RegExp("//.+"),
   ],
+  // 被忽略的文本
+  ignoreText: [],
   // js相关文件需要引入的国际化文件
   i18nImportForJs: "import i18n from '@/i18n'",
   // js相关文件需要使用国际化方法
@@ -95,7 +102,7 @@ if (!program.cwd) {
   absoluteCwd = path.resolve(config.cwd);
 }
 
-const { ignorePreReg, i18nImportForJs, jsI18nFuncName, vueI18nFuncName } = config
+const { ignorePreReg, i18nImportForJs, jsI18nFuncName, vueI18nFuncName, ignoreText } = config
 
 const absoluteRootDir = path.resolve(absoluteCwd, config.rootDir);
 
@@ -209,6 +216,15 @@ function processVueFile (fileContent) {
       // 经过这一层过滤，会过滤去tag内容的中文，并加上国际化文本
       const newTagContentKey = tagContentKey.replace(i18nContentReg, function (match) {
         const trimMatch = match.trim()
+
+        for (let i = 0; i < ignoreText.length; i++) {
+          if (typeof ignoreText[i] === 'string') {
+            if (ignoreText[i] === trimMatch) return match
+          } else if (Object.prototype.toString.call(ignoreText[i]) === "[object RegExp]") {
+            if (ignoreText[i].test(trimMatch)) return match
+          }
+        }
+
         // 例子 <p> 啦啦啦 </p>  变成 <p> {{$t('啦啦啦')}} </p>
         return match.replace(trimMatch, `{{${vueI18nFuncName}('${trimMatch}')}}`)
       })
@@ -227,6 +243,15 @@ function processVueFile (fileContent) {
         const value = doubleQuoteValue || singleQuoteValue
         if (name.charAt(0) === '@' || name.charAt(0) === ':') return match
         if (!i18nContentReg.test(value)) return match
+
+        for (let i = 0; i < ignoreText.length; i++) {
+          if (typeof ignoreText[i] === 'string') {
+            if (ignoreText[i] === value) return match
+          } else if (Object.prototype.toString.call(ignoreText[i]) === "[object RegExp]") {
+            if (ignoreText[i].test(value)) return match
+          }
+        }
+
         // console.log(arguments)
         // vueI18nFuncName = '$t' => `$t(${value})`
         return `:${name}="${vueI18nFuncName}('${value}')"`
@@ -241,6 +266,13 @@ function processVueFile (fileContent) {
     let newScriptKey = scriptKey.replace(i18nStrReg, function (match, key, key2, index) {
       for (let i = 0; i < ignorePreReg.length; i++) {
         if (prefixTestReg(ignorePreReg[i], scriptKey, match, index, 50)) return match
+      }
+      for (let i = 0; i < ignoreText.length; i++) {
+        if (typeof ignoreText[i] === 'string') {
+          if (ignoreText[i] === match.slice(1, -1)) return match
+        } else if (Object.prototype.toString.call(ignoreText[i]) === "[object RegExp]") {
+          if (ignoreText[i].test(match.slice(1, -1))) return match
+        }
       }
       if (match.indexOf('/*') !== -1) return match
       // vueI18nFuncName = '$t' => `this.$t(${match})`
@@ -258,6 +290,14 @@ function processJsFile (fileContent) {
   newFileContent = newFileContent.replace(i18nStrReg, function (match, key, key2, index) {
     for (let i = 0; i < ignorePreReg.length; i++) {
       if (prefixTestReg(ignorePreReg[i], newFileContent, match, index, 50)) return match
+    }
+    console.log(ignoreText)
+    for (let i = 0; i < ignoreText.length; i++) {
+      if (typeof ignoreText[i] === 'string') {
+        if (ignoreText[i] === match.slice(1, -1)) return match
+      } else if (Object.prototype.toString.call(ignoreText[i]) === "[object RegExp]") {
+        if (ignoreText[i].test(match.slice(1, -1))) return match
+      }
     }
     // jsI18nFuncName = 'i18n.t' => `i18n.t(${match})`
     return `${jsI18nFuncName}(${match})`

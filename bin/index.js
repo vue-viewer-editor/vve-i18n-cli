@@ -268,7 +268,12 @@ async function saveI18nFile({ dirPath } = {}) {
 
     // 写文件
     try {
-      jsonfile.writeFileSync(langFilePath, newData, { spaces: 2, EOL: "\n" });
+      jsonfile.writeFileSync(langFilePath, newData, { spaces: 2, EOL: "\n", replacer: (key, value) => {
+        if (typeof value === 'object') {
+          return JSON.parse(JSON.stringify(value).replace(/\\\\/g, '\\'))
+        }
+        return value
+      } });
       console.log("提取完成" + langFilePath);
     } catch (err) {
       console.log("提取失败" + langFilePath + "\n" + err);

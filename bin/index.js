@@ -176,7 +176,9 @@ function getModuleI18nData(modulePath, fileContent) {
   for (let i = 0; i < config.i18nTextRules.length; i++) {
     const regI18n = new RegExp(config.i18nTextRules[i], "g");
     while ((tmpRegData.matches = regI18n.exec(fileContent))) {
-      i18nData[modulePath].push(tmpRegData.matches[1]);
+      let key = tmpRegData.matches[1]
+      key = key.replace(/\\\\/g, '\\') // 解决\\转义后的问题
+      i18nData[modulePath].push(key);
     }
   }
 }
@@ -268,12 +270,7 @@ async function saveI18nFile({ dirPath } = {}) {
 
     // 写文件
     try {
-      jsonfile.writeFileSync(langFilePath, newData, { spaces: 2, EOL: "\n", replacer: (key, value) => {
-        if (typeof value === 'object') {
-          return JSON.parse(JSON.stringify(value).replace(/\\\\/g, '\\'))
-        }
-        return value
-      } });
+      jsonfile.writeFileSync(langFilePath, newData, { spaces: 2, EOL: "\n" });
       console.log("提取完成" + langFilePath);
     } catch (err) {
       console.log("提取失败" + langFilePath + "\n" + err);

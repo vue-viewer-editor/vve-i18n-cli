@@ -156,8 +156,8 @@ const config = {
   ignoreI18nFileRules: [],
   // 被忽略的前缀
   ignorePreReg: [
-    /t\s*\(\s*$/,
-    /tl\s*\(\s*$/,
+    /t\s*\([\s\n]*$/,
+    /tl\s*\([\s\n]*$/,
     /console\.(?:log|error|warn|info|debug)\s*\(\s*$/,
     new RegExp("//.+"),
   ],

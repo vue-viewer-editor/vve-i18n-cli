@@ -278,7 +278,13 @@ function processVueFile (fileContent) {
       // vueI18nFuncName = '$t' => `this.$t(${match})`
       return `this.${vueI18nFuncName}(${match})`
     })
-    return match.replace(scriptKey, newScriptKey)
+
+    if (scriptKey === newScriptKey) {
+      // bug 如果scriptKey出现$结尾的，比如'$'，及时replace两者一样，还是会被替换
+      return match
+    } else {
+      return match.replace(scriptKey, newScriptKey)
+    }
   })
   // console.log(newFileContent)
   return newFileContent

@@ -24,6 +24,9 @@ export default {
   },
   computed: {
     world () {
+      let content = this.$t(
+        '我换行了'
+      )
       return this.$t('世界')
     }
   }

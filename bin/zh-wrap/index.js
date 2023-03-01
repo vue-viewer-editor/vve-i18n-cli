@@ -62,8 +62,8 @@ const config = {
   ignoreI18nFileRules: [],
   // 被忽略的前缀
   ignorePreReg: [
-    /t\s*\(\s*$/,
-    /tl\s*\(\s*$/,
+    /t\s*\([\s\n]*$/,
+    /tl\s*\([\s\n]*$/,
     /console\.(?:log|error|warn|info|debug)\s*\(\s*$/,
     new RegExp("//.+"),
   ],
@@ -139,12 +139,22 @@ function betweenRtAndLt (strContent, match, index, range) {
 }
 
 // 获取当前元素所在行之前的元素
-function getLinePreText(str, match, index, range = 300) {
+function getLinePreText(str, match, index, range = 300, leftShift = 4) {
   const startIndex = index - 1
   let end = startIndex - range
   for (let i = startIndex; i >= end; i--) {
     if (str.charAt(i) === '\n') {
       end = i
+
+      /**
+       * bug 一下格式，中文会被多加一个，所以到换，多往前移动几个字符，避免$t(的内容换行导致又多包裹一层
+          $t(
+            '翻译文字'
+          )
+       */
+      if (leftShift && end >= leftShift) {
+        end = end - leftShift
+      }
       break;
     }
   }

@@ -68,7 +68,10 @@ const config = {
     new RegExp("//.+"),
   ],
   // 被忽略的文本
-  ignoreText: [],
+  ignoreText: [
+    /t\(/,
+    /tl\(/,
+  ],
   // js相关文件需要引入的国际化文件
   i18nImportForJs: "import i18n from '@/i18n'",
   // js相关文件需要使用国际化方法

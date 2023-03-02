@@ -136,6 +136,11 @@ program
     "不匹配含有国际化文本的文件规则",
     commaSeparatedList
   )
+  .option(
+    "--ignore-text-in-quote-rules <items>",
+    "反引号中需要忽略的文本规则，可以是正则或者字符串",
+    commaSeparatedList
+  )
   .parse(process.argv);
 ```
 
@@ -169,6 +174,10 @@ const config = {
   i18nFileRules: ["**/*.+(vue|js)"],
   // 不匹配含有国际化文本的文件规则
   ignoreI18nFileRules: [],
+  // 反引号中需要忽略的文本规则，可以是正则或者字符串
+  ignoreTextInQuoteRules: [
+    /t\(/
+  ],
 };
 ```
 

@@ -23,6 +23,16 @@
       ],
       "program": "${workspaceFolder}/bin/zh-wrap/index.js",
       "args": ["--cwd", "./test/example-wrap"],
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "vve-i18n-zh-check-cli",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/bin/zh-check/index.js",
+      "args": ["--cwd", "./test/example-check"],
     }
   ]
 }

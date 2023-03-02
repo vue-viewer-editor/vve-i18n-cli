@@ -32,6 +32,11 @@ program
     "不匹配含有国际化文本的文件规则",
     commaSeparatedList
   )
+  .option(
+    "--ignore-text-in-quote-rules <items>",
+    "反引号中需要忽略的文本规则，可以是正则或者字符串",
+    commaSeparatedList
+  )
   .parse(process.argv);
 
 const config = {
@@ -47,6 +52,10 @@ const config = {
   i18nFileRules: ["**/*.+(vue|js)"],
   // 不匹配含有国际化文本的文件规则
   ignoreI18nFileRules: [],
+  // 反引号中需要忽略的文本规则，可以是正则或者字符串
+  ignoreTextInQuoteRules: [
+    /t\(/
+  ],
 };
 
 Object.assign(config, program);
@@ -74,7 +83,7 @@ if (!program.cwd) {
   absoluteCwd = path.resolve(config.cwd);
 }
 
-const { ignorePreReg, i18nImportForJs, jsI18nFuncName, vueI18nFuncName } = config
+const { ignoreTextInQuoteRules } = config
 
 const absoluteRootDir = path.resolve(absoluteCwd, config.rootDir);
 
@@ -279,10 +288,32 @@ function processVueFile (fileContent) {
       if (isWrapByDoubelSlashComment(fileContent, backQuoteMatch[0], backQuoteMatch.index)) {
         continue;
       }
-      // 是否包含一些关键字，如果是，则不处理
+      // 是否包含一些关键字，如果是，则不处理，表示一些实例代码
       if (hasSomeKeyword(backQuoteMatch[0])) {
         continue;
       }
+
+      // 处理反引号中需要忽略的文本
+      var flag = false
+      var pureTextMatch = backQuoteMatch[0].slice(1, -2)
+      for (let i = 0; i < ignoreTextInQuoteRules.length; i++) {
+        if (typeof ignoreTextInQuoteRules[i] === 'string') {
+          if (ignoreTextInQuoteRules[i] === pureTextMatch) {
+            flag = true
+            break
+          }
+        } else if (Object.prototype.toString.call(ignoreTextInQuoteRules[i]) === "[object RegExp]") {
+          if (ignoreTextInQuoteRules[i].test(pureTextMatch)) {
+            flag = true
+            break;
+          }
+        }
+      }
+      if (flag) {
+        continue;
+      }
+      // 处理反引号中需要忽略的文本 end
+
       if (zhReg.test(backQuoteMatch[0])) {
         resultArr.push({
           type: 'back-quote',
@@ -365,6 +396,28 @@ function processJsFile (fileContent) {
       if (hasSomeKeyword(backQuoteMatch[0])) {
         continue;
       }
+
+      // 处理反引号中需要忽略的文本
+      var flag = false
+      var pureTextMatch = backQuoteMatch[0].slice(1, -2)
+      for (let i = 0; i < ignoreTextInQuoteRules.length; i++) {
+        if (typeof ignoreTextInQuoteRules[i] === 'string') {
+          if (ignoreTextInQuoteRules[i] === pureTextMatch) {
+            flag = true
+            break
+          }
+        } else if (Object.prototype.toString.call(ignoreTextInQuoteRules[i]) === "[object RegExp]") {
+          if (ignoreTextInQuoteRules[i].test(pureTextMatch)) {
+            flag = true
+            break;
+          }
+        }
+      }
+      if (flag) {
+        continue;
+      }
+      // 处理反引号中需要忽略的文本 end
+
       if (zhReg.test(backQuoteMatch[0])) {
         resultArr.push({
           type: 'back-quote',

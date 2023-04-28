@@ -72,6 +72,8 @@ const config = {
     /t\(/,
     /tl\(/,
   ],
+  // 被忽略的html属性（TODO：目前仅处理 html 文件时生效）
+  ignoreAttr: [],
   // js相关文件需要引入的国际化文件
   i18nImportForJs: "import i18n from '@/i18n'",
   // js相关文件需要使用国际化方法
@@ -105,7 +107,7 @@ if (!program.cwd) {
   absoluteCwd = path.resolve(config.cwd);
 }
 
-const { ignorePreReg, i18nImportForJs, jsI18nFuncName, vueI18nFuncName, ignoreText } = config
+const { ignorePreReg, i18nImportForJs, jsI18nFuncName, vueI18nFuncName, ignoreText, ignoreAttr } = config
 
 const absoluteRootDir = path.resolve(absoluteCwd, config.rootDir);
 
@@ -208,7 +210,7 @@ const templateReg = new RegExp("<template>([\\s\\S]+)<\\/template>", "i")
 // 处理script
 const scriptReg = new RegExp("<script>([\\s\\S]+)<\\/script>", "i")
 // tag的内容正则匹配
-const TagContentReg = new RegExp('>((?:[^\x00-\xff]|\w|[0-9{}.A-Za-z\\s])+)<', 'g')
+const TagContentReg = new RegExp('>((?:[^\x00-\xff]|\w|[:0-9{}.A-Za-z\\s])+)<', 'g')
 // html start tag匹配正则
 const startTagReg = new RegExp(/<(?:[-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:@][-a-zA-Z0-9_:.]*(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(?:\/?)>/, 'g')
 // 属性的正则
@@ -303,6 +305,100 @@ function processVueFile (fileContent) {
   return newFileContent
 }
 
+// 解析html文件
+function processHtmlFile (fileContent) {
+  let newFileContent = fileContent;
+  // 先移除 html 里的 script，style，link 代码块
+  const scriptCodes = [];
+  const styleCodes = [];
+  const linkCodes = [];
+  newFileContent = newFileContent.replace(/(<script[\s\S]*?<\/script>)/ig, function(match, key, index) {
+    const count = scriptCodes.length;
+    scriptCodes.push(match);
+    return match.replace(key, `@@scriptCodes_${count}@@`);
+  });
+  newFileContent = newFileContent.replace(/(<style[\s\S]*?<\/style>)/ig, function(match, key, index) {
+    const count = styleCodes.length;
+    styleCodes.push(match);
+    return match.replace(key, `@@styleCodes_${count}@@`);
+  });
+  newFileContent = newFileContent.replace(/(<link[\s\S]*?<\/link>)/ig, function(match, key, index) {
+    const count = linkCodes.length;
+    linkCodes.push(match);
+    return match.replace(key, `@@linkCodes_${count}@@`);
+  });
+  // 过滤出template相关内容，处理tag内容的国际化
+  newFileContent = newFileContent.replace(TagContentReg, function (match, tagContentKey, index) {
+    if (!tagContentKey.trim()) return match
+    // console.log(match, tagContentKey)
+    // 经过这一层过滤，会过滤去tag内容的中文，并加上国际化文本
+    const newTagContentKey = tagContentKey.replace(i18nContentReg, function (match) {
+      const trimMatch = match.trim()
+
+      for (let i = 0; i < ignoreText.length; i++) {
+        if (typeof ignoreText[i] === 'string') {
+          if (ignoreText[i] === trimMatch) return match
+        } else if (Object.prototype.toString.call(ignoreText[i]) === "[object RegExp]") {
+          if (ignoreText[i].test(trimMatch)) return match
+        }
+      }
+
+      // 例子 <p> 啦啦啦 </p>  变成 <p> {{$t('啦啦啦')}} </p>
+      return match.replace(trimMatch, `{{${vueI18nFuncName}('${trimMatch}')}}`)
+    })
+    return match.replace(tagContentKey, newTagContentKey)
+  })
+  // console.log(newFileContent)
+  // 过滤出template相关内容，处理tag属性的国际化
+  newFileContent = newFileContent.replace(startTagReg, function (match, key, index) {
+    const attrStr = key
+    if (!attrStr.trim()) return match
+    const newAttStr = attrStr.replace(attrReg, function (match, name, doubleQuoteValue, singleQuoteValue) {
+      const value = doubleQuoteValue || singleQuoteValue
+      if (name.charAt(0) === '@' || name.charAt(0) === ':') return match
+      if (!i18nContentReg.test(value)) return match
+      
+
+      for (let i = 0; i < ignoreText.length; i++) {
+        if (typeof ignoreText[i] === 'string') {
+          if (ignoreText[i] === value) return match
+        } else if (Object.prototype.toString.call(ignoreText[i]) === "[object RegExp]") {
+          if (ignoreText[i].test(value)) return match
+        }
+      }
+
+      for (let i = 0; i < ignoreAttr.length; i++) {
+        if (typeof ignoreAttr[i] === 'string') {
+          if (ignoreAttr[i] === name) return match
+        } else if (Object.prototype.toString.call(ignoreAttr[i]) === "[object RegExp]") {
+          if (ignoreAttr[i].test(name)) return match
+        }
+      }
+
+      // console.log(arguments)
+      // vueI18nFuncName = '$t' => `$t(${value})`
+      return `:${name}="${vueI18nFuncName}('${value}')"`
+    })
+    return match.replace(attrStr, newAttStr)
+  })
+  // console.log(newFileContent)
+  // 再恢复 html 里的 script，style，link 代码块
+  newFileContent = newFileContent.replace(/(@@scriptCodes_.*?@@)/ig, function(match, key, index) {
+    const i = match.match(/@@scriptCodes_(.*?)@@/)[1];
+    return match.replace(key, scriptCodes[i]);
+  });
+  newFileContent = newFileContent.replace(/(@@styleCodes_.*?@@)/ig, function(match, key, index) {
+    const i = match.match(/@@styleCodes_(.*?)@@/)[1];
+    return match.replace(key, styleCodes[i]);
+  });
+  newFileContent = newFileContent.replace(/(@@linkCodes_.*?@@)/ig, function(match, key, index) {
+    const i = match.match(/@@linkCodes_(.*?)@@/)[1];
+    return match.replace(key, linkCodes[i]);
+  });
+ 
+  return newFileContent
+}
+
 // 解析js文件
 function processJsFile (fileContent) {
   let newFileContent = fileContent
@@ -310,7 +406,6 @@ function processJsFile (fileContent) {
     for (let i = 0; i < ignorePreReg.length; i++) {
       if (prefixTestReg(ignorePreReg[i], newFileContent, match, index, 50)) return match
     }
-    console.log(ignoreText)
     for (let i = 0; i < ignoreText.length; i++) {
       if (typeof ignoreText[i] === 'string') {
         if (ignoreText[i] === match.slice(1, -1)) return match
@@ -345,7 +440,9 @@ function run () {
         newFileContent = processVueFile(fileContent)
       } else if (extname.toLowerCase() === '.js') {
         newFileContent = processJsFile(fileContent.toString())
-      }
+      } else if (extname.toLowerCase() === '.html' || extname.toLowerCase() === '.htm') {
+        newFileContent = processHtmlFile(fileContent)
+      } 
       if (!newFileContent) {
         console.log('内容为空，无需处理', file.path)
       } else if (newFileContent !== fileContent) {

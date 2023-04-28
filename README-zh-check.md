@@ -141,6 +141,11 @@ program
     "反引号中需要忽略的文本规则，可以是正则或者字符串",
     commaSeparatedList
   )
+  .option(
+    "--disabledRules <items>",
+    "如果满足匹配的内容，就忽略检查",
+    commaSeparatedList
+  )
   .parse(process.argv);
 ```
 
@@ -177,6 +182,15 @@ const config = {
   // 反引号中需要忽略的文本规则，可以是正则或者字符串
   ignoreTextInQuoteRules: [
     /t\(/
+  ],
+  // 如果满足匹配的内容，就忽略检查
+  disableRules: [
+    // 单行禁用，使用：在当前行添加 // vve-i18n-zh-check-disable-line
+    /(.*\/\/(?:[^\S\r\n]*|.*[^\S\r\n]+)vve-i18n-zh-check-disable-line(?:[^\S\r\n]*|[^\S\r\n]+.*))/g,
+    // 下一行禁用，使用：在上一行添加 // vve-i18n-zh-check-disable-next-line
+    /\/\/(?:[^\S\r\n]*|.*[^\S\r\n]+)vve-i18n-zh-check-disable-next-line(?:[^\S\r\n]*|[^\S\r\n]+.*)\n(.+)/g,
+    // 代码块禁用，使用：在需要的地方包括
+    /\/\*\s*vve-i18n-zh-check-disable\s*\*\/([\s\S]*?)(?:(?:\/\*\s*vve-i18n-zh-check-enable\s*\*\/)|$)/g
   ],
 };
 ```

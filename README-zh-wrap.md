@@ -123,6 +123,11 @@ program
     "被忽略的属性，该属性的value值如果是中文，则不会被包裹，是个数组",
     commaSeparatedList
   )
+  .option(
+    "--disabledRules <items>",
+    "如果满足匹配的内容，就忽略包裹",
+    commaSeparatedList
+  )
   .option("--i18n-import-for-js <item>", "js相关文件需要引入的国际化文件")
   .option("--js-i18n-func-name <item>", "js相关文件需要使用国际化方法")
   .option("--vue-i18n-func-name <item>", "vue相关文件需要使用的国际化方法")
@@ -173,6 +178,15 @@ const config = {
   ],
   // 被忽略的属性，该属性的value值如果是中文，则不会被包裹
   ignoreAttr: [],
+  // 如果满足匹配的内容，就忽略包裹
+  disableRules: [
+    // 单行禁用，使用：在当前行添加 // vve-i18n-zh-wrap-disable-line
+    /(.*\/\/(?:[^\S\r\n]*|.*[^\S\r\n]+)vve-i18n-zh-wrap-disable-line(?:[^\S\r\n]*|[^\S\r\n]+.*))/g,
+    // 下一行禁用，使用：在上一行添加 // vve-i18n-zh-wrap-disable-next-line
+    /\/\/(?:[^\S\r\n]*|.*[^\S\r\n]+)vve-i18n-zh-wrap-disable-next-line(?:[^\S\r\n]*|[^\S\r\n]+.*)\n(.+)/g,
+    // 代码块禁用，使用：在需要的地方包括
+    /\/\*\s*vve-i18n-zh-wrap-disable\s*\*\/([\s\S]*?)(?:(?:\/\*\s*vve-i18n-zh-wrap-enable\s*\*\/)|$)/g
+  ],
   // js相关文件需要引入的国际化文件
   i18nImportForJs: "import i18n from '@/i18n'",
   // js相关文件需要使用国际化方法

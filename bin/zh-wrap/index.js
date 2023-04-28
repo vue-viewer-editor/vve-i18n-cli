@@ -207,7 +207,9 @@ function prefixTestReg (reg, str, match, index, range) {
 }
 
 // 国际化文本，中文开头，可以包含中文数字.和空格，用户匹配
-const i18nContentReg = /([^"{}\n]*[^\x00-\xff]+[^"{}\n]*)|([^'{}\n]*[^\x00-\xff]+[^{}'\n]*)/g
+const i18nContentRegForTest = /([^"{}\n]*[^\x00-\xff]+[^"{}\n]*)|([^'{}\n]*[^\x00-\xff]+[^{}'\n]*)/g
+const i18nContentReg = new RegExp(i18nContentRegForTest, 'g')
+
 // 判定是否包含中文，用于test
 const i18nContenTestReg = /([^"{}\n]*[^\x00-\xff]+[^"{}\n]*)|([^'{}\n]*[^\x00-\xff]+[^{}'\n]*)/
 // 处理template
@@ -262,7 +264,7 @@ function processVueFile (fileContent) {
       const newAttStr = attrStr.replace(attrReg, function (match, name, doubleQuoteValue, singleQuoteValue) {
         const value = doubleQuoteValue || singleQuoteValue
         if (name.charAt(0) === '@' || name.charAt(0) === ':') return match
-        if (!i18nContentReg.test(value)) return match
+        if (!i18nContentRegForTest.test(value)) return match
 
         for (let i = 0; i < ignoreText.length; i++) {
           if (typeof ignoreText[i] === 'string') {
@@ -361,8 +363,7 @@ function processHtmlFile (fileContent) {
     const newAttStr = attrStr.replace(attrReg, function (match, name, doubleQuoteValue, singleQuoteValue) {
       const value = doubleQuoteValue || singleQuoteValue
       if (name.charAt(0) === '@' || name.charAt(0) === ':') return match
-      if (!i18nContentReg.test(value)) return match
-      
+      if (!i18nContentRegForTest.test(value)) return match
 
       for (let i = 0; i < ignoreText.length; i++) {
         if (typeof ignoreText[i] === 'string') {

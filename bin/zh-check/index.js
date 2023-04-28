@@ -221,7 +221,7 @@ const i18nContentReg = /(?![{}A-Za-z0-9.©×\-_!, ]+)([^\x00-\xff]|[A-Za-z0-9.©
 // 处理template
 const templateReg = new RegExp("<template>([\\s\\S]+)<\\/template>", "i")
 // 处理script
-const scriptReg = new RegExp("<script>([\\s\\S]+)<\\/script>", "i")
+const scriptReg = /<script(?:\s*|\s+.+?)>([\s\S]+)<\/script>/i
 // 国际化字符串，被单引号或者双引号包裹，内容中文开头
 const i18nStrReg = /"([^"{}\n]*[^\x00-\xff]+[^"{}\n]*)"|'([^'{}\n]*[^\x00-\xff]+[^'{}\n]*)'/g
 // 中文做key的正则

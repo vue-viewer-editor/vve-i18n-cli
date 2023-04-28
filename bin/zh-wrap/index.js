@@ -229,7 +229,7 @@ const i18nContenTestReg = /([^"{}\n]*[^\x00-\xff]+[^"{}\n]*)|([^'{}\n]*[^\x00-\x
 // 处理template
 const templateReg = new RegExp("<template>([\\s\\S]+)<\\/template>", "i")
 // 处理script
-const scriptReg = new RegExp("<script>([\\s\\S]+)<\\/script>", "i")
+const scriptReg = /<script(?:\s*|\s+.+?)>([\s\S]+)<\/script>/i
 // tag的内容正则匹配
 const TagContentReg = new RegExp('>((?:[^\x00-\xff]|\w|[:0-9{}.A-Za-z\\s])+)<', 'g')
 // html start tag匹配正则

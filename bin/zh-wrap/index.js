@@ -42,6 +42,11 @@ program
     "被忽略的文本，是个数组",
     commaSeparatedList
   )
+  .option(
+    "--ignore-attr <items>",
+    "被忽略的html属性，该属性内的中文不需要国际化，是个数组",
+    commaSeparatedList
+  )
   .option("--i18n-import-for-js <item>", "js相关文件需要引入的国际化文件")
   .option("--js-i18n-func-name <item>", "js相关文件需要使用国际化方法")
   .option("--vue-i18n-func-name <item>", "vue相关文件需要使用的国际化方法")
@@ -72,7 +77,7 @@ const config = {
     /t\(/,
     /tl\(/,
   ],
-  // 被忽略的html属性（TODO：目前仅处理 html 文件时生效）
+  // 被忽略的html属性，该属性存在中文不被翻译（目前仅处理 html 文件时生效）
   ignoreAttr: [],
   // js相关文件需要引入的国际化文件
   i18nImportForJs: "import i18n from '@/i18n'",

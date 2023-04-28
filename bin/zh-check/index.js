@@ -64,10 +64,10 @@ const config = {
   // 如果满足匹配的内容，就忽略检查
   disableRules: [
     // 单行禁用，使用：在当前行添加 // vve-i18n-zh-check-disable-line
-    /(.*\/\/(?:\s*|.*\s+)vve-i18n-zh-check-disable-line(?:\s*$|\s+.*))/g,
+    /(.*\/\/(?:[^\S\r\n]*|.*[^\S\r\n]+)vve-i18n-zh-check-disable-line(?:[^\S\r\n]*|[^\S\r\n]+.*))/g,
     // 下一行禁用，使用：在上一行添加 // vve-i18n-zh-check-disable-next-line
-    /\/\/(?:\s*|.*\s+)vve-i18n-zh-check-disable-next-line(?:\s*|\s+.*)\n(.+)/g,
-    // 代码块禁用，使用：在需要的地方包括/* vve-i18n-zh-check-disable */ /* vve-i18n-zh-check-enable */
+    /\/\/(?:[^\S\r\n]*|.*[^\S\r\n]+)vve-i18n-zh-check-disable-next-line(?:[^\S\r\n]*|[^\S\r\n]+.*)\n(.+)/g,
+    // 代码块禁用，使用：在需要的地方包括
     /\/\*\s*vve-i18n-zh-check-disable\s*\*\/([\s\S]*?)(?:(?:\/\*\s*vve-i18n-zh-check-enable\s*\*\/)|$)/g
   ],
 };

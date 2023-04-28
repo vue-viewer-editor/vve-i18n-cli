@@ -28,7 +28,16 @@ export default {
         '我换行了'
       )
       return this.$t('世界')
-    }
+    },
+    testDisabled () {
+      var zh1 = '这一行不希望被包裹' // vve-i18n-zh-wrap-disable-line
+      /* vve-i18n-zh-wrap-disable */
+      var zh2 = '这一行也不希望被包裹'
+      /* vve-i18n-zh-wrap-enable */
+
+      // vve-i18n-zh-wrap-disable-next-line
+      return '这一行还不希望被包裹'
+    },
   }
 }
 </script>

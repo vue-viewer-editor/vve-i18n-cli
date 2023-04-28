@@ -47,6 +47,11 @@ program
     "被忽略的属性，该属性的value值如果是中文，则不会被包裹，是个数组",
     commaSeparatedList
   )
+  .option(
+    "--disabledRules <items>",
+    "如果满足匹配的内容，就忽略包裹",
+    commaSeparatedList
+  )
   .option("--i18n-import-for-js <item>", "js相关文件需要引入的国际化文件")
   .option("--js-i18n-func-name <item>", "js相关文件需要使用国际化方法")
   .option("--vue-i18n-func-name <item>", "vue相关文件需要使用的国际化方法")
@@ -79,6 +84,15 @@ const config = {
   ],
   // 被忽略的属性，该属性的value值如果是中文，则不会被包裹
   ignoreAttr: [],
+  // 如果满足匹配的内容，就忽略包裹
+  disableRules: [
+    // 单行禁用，使用：在当前行添加 // vve-i18n-zh-wrap-disable-line
+    /(.*\/\/(?:[^\S\r\n]*|.*[^\S\r\n]+)vve-i18n-zh-wrap-disable-line(?:[^\S\r\n]*|[^\S\r\n]+.*))/g,
+    // 下一行禁用，使用：在上一行添加 // vve-i18n-zh-wrap-disable-next-line
+    /\/\/(?:[^\S\r\n]*|.*[^\S\r\n]+)vve-i18n-zh-wrap-disable-next-line(?:[^\S\r\n]*|[^\S\r\n]+.*)\n(.+)/g,
+    // 代码块禁用，使用：在需要的地方包括
+    /\/\*\s*vve-i18n-zh-wrap-disable\s*\*\/([\s\S]*?)(?:(?:\/\*\s*vve-i18n-zh-wrap-enable\s*\*\/)|$)/g
+  ],
   // js相关文件需要引入的国际化文件
   i18nImportForJs: "import i18n from '@/i18n'",
   // js相关文件需要使用国际化方法
@@ -437,6 +451,35 @@ function processJsFile (fileContent) {
   return newFileContent
 }
 
+// 禁用的文本列表，临时使用
+const disableTextArr = []
+
+// 根据匹配规则，把匹配的内容，替换成一个占位符
+function replaceWithPlaceholderByRule (str, rule) {
+  str = str.replace(new RegExp(rule), function(match, key, index) {
+    const count = disableTextArr.length;
+    disableTextArr.push(key);
+    return match.replace(key, `@@@@@@disableText_${count}@@@@@@`);
+  });
+  return str
+}
+
+// 根据匹配规则列表，把匹配的内容，替换成一个占位符
+function replaceWithPlaceholder (str, disableRules) {
+  for (let i = 0; i < disableRules.length; i++) {
+    str = replaceWithPlaceholderByRule(str, disableRules[i])
+  }
+  return str
+}
+
+// 把占位的内容，还原
+function placeholderRestore (str) {
+  str = str.replace(/(@@@@@@disableText_(\d+)@@@@@@)/g, function(match, key, key2, index) {
+    return disableTextArr[key2]
+  });
+  return str
+}
+
 function run () {
   vfs
   .src(config.i18nFileRules.map(item => path.resolve(absoluteRootDir, item)),{
@@ -448,18 +491,26 @@ function run () {
     map((file, cb) => {
       console.log('开始解析', file.path)
       const extname = path.extname(file.path)
-      let fileContent = file.contents.toString()
-      let newFileContent
+      let originfileContent = file.contents.toString()
+
+      // 根据禁用匹配规则列表，把匹配的内容替换成一个占位符，之后就不会为这些代码的国际化文本进行包裹
+      let fileContent = replaceWithPlaceholder(originfileContent, config.disableRules)
+
+      let newFileContent = ''
       if (extname.toLowerCase() === '.vue') {
         newFileContent = processVueFile(fileContent)
       } else if (extname.toLowerCase() === '.js') {
-        newFileContent = processJsFile(fileContent.toString())
+        newFileContent = processJsFile(fileContent)
       } else if (extname.toLowerCase() === '.html' || extname.toLowerCase() === '.htm') {
         newFileContent = processHtmlFile(fileContent)
-      } 
+      }
+
+      // 把之前不处理的代码还原
+      newFileContent = placeholderRestore(newFileContent)
+
       if (!newFileContent) {
         console.log('内容为空，无需处理', file.path)
-      } else if (newFileContent !== fileContent) {
+      } else if (newFileContent !== originfileContent) {
         fs.writeFileSync(file.path, newFileContent)
         console.log('处理完成', file.path)
       } else {

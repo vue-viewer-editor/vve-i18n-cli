@@ -8,8 +8,8 @@
 </head>
 <body>
   <div id="app">
-    <div title="标题"></div>
-    <span data-local data-text="您好">您好</span>
+    <div :title="$t('标题')"></div>
+    <span data-local :data-text="$t('您好')">{{$t('您好')}}</span>
   </div>
   <script>
     new Vue({

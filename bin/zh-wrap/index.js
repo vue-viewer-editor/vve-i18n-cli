@@ -44,7 +44,7 @@ program
   )
   .option(
     "--ignore-attr <items>",
-    "被忽略的html属性，该属性内的中文不需要国际化，是个数组",
+    "被忽略的属性，该属性的value值如果是中文，则不会被包裹，是个数组",
     commaSeparatedList
   )
   .option("--i18n-import-for-js <item>", "js相关文件需要引入的国际化文件")
@@ -77,7 +77,7 @@ const config = {
     /t\(/,
     /tl\(/,
   ],
-  // 被忽略的html属性，该属性存在中文不被翻译（目前仅处理 html 文件时生效）
+  // 被忽略的属性，该属性的value值如果是中文，则不会被包裹
   ignoreAttr: [],
   // js相关文件需要引入的国际化文件
   i18nImportForJs: "import i18n from '@/i18n'",
@@ -271,6 +271,14 @@ function processVueFile (fileContent) {
             if (ignoreText[i] === value) return match
           } else if (Object.prototype.toString.call(ignoreText[i]) === "[object RegExp]") {
             if (ignoreText[i].test(value)) return match
+          }
+        }
+
+        for (let i = 0; i < ignoreAttr.length; i++) {
+          if (typeof ignoreAttr[i] === 'string') {
+            if (ignoreAttr[i] === name) return match
+          } else if (Object.prototype.toString.call(ignoreAttr[i]) === "[object RegExp]") {
+            if (ignoreAttr[i].test(name)) return match
           }
         }
 

@@ -118,6 +118,11 @@ program
     "被忽略的文本，是个数组",
     commaSeparatedList
   )
+  .option(
+    "--ignore-attr <items>",
+    "被忽略的属性，该属性的value值如果是中文，则不会被包裹，是个数组",
+    commaSeparatedList
+  )
   .option("--i18n-import-for-js <item>", "js相关文件需要引入的国际化文件")
   .option("--js-i18n-func-name <item>", "js相关文件需要使用国际化方法")
   .option("--vue-i18n-func-name <item>", "vue相关文件需要使用的国际化方法")
@@ -162,11 +167,12 @@ const config = {
     new RegExp("//.+"),
   ],
   // 被忽略的文本
-  // 被忽略的文本
   ignoreText: [
     /t\(/,
     /tl\(/,
   ],
+  // 被忽略的属性，该属性的value值如果是中文，则不会被包裹
+  ignoreAttr: [],
   // js相关文件需要引入的国际化文件
   i18nImportForJs: "import i18n from '@/i18n'",
   // js相关文件需要使用国际化方法

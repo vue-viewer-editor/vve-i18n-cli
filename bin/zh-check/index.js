@@ -37,6 +37,11 @@ program
     "反引号中需要忽略的文本规则，可以是正则或者字符串",
     commaSeparatedList
   )
+  .option(
+    "--disabledRules <items>",
+    "如果满足匹配的内容，就忽略检查",
+    commaSeparatedList
+  )
   .parse(process.argv);
 
 const config = {
@@ -55,6 +60,15 @@ const config = {
   // 反引号中需要忽略的文本规则，可以是正则或者字符串
   ignoreTextInQuoteRules: [
     /t\(/
+  ],
+  // 如果满足匹配的内容，就忽略检查
+  disableRules: [
+    // 单行禁用，使用：在当前行添加 // vve-i18n-zh-check-disable-line
+    /(.*\/\/(?:\s*|.*\s+)vve-i18n-zh-check-disable-line(?:\s*$|\s+.*))/g,
+    // 下一行禁用，使用：在上一行添加 // vve-i18n-zh-check-disable-next-line
+    /\/\/(?:\s*|.*\s+)vve-i18n-zh-check-disable-next-line(?:\s*|\s+.*)\n(.+)/g,
+    // 代码块禁用，使用：在需要的地方包括/* vve-i18n-zh-check-disable */ /* vve-i18n-zh-check-enable */
+    /\/\*\s*vve-i18n-zh-check-disable\s*\*\/([\s\S]*?)(?:(?:\/\*\s*vve-i18n-zh-check-enable\s*\*\/)|$)/g
   ],
 };
 
@@ -449,6 +463,35 @@ function processJsFile (fileContent) {
   return resultArr
 }
 
+// 禁用的文本列表，临时使用
+const disableTextArr = []
+
+// 根据匹配规则，把匹配的内容，替换成一个占位符
+function replaceWithPlaceholderByRule (str, rule) {
+  str = str.replace(new RegExp(rule), function(match, key, index) {
+    const count = disableTextArr.length;
+    disableTextArr.push(key);
+    return match.replace(key, `@@@@@@disableText_${count}@@@@@@`);
+  });
+  return str
+}
+
+// 根据匹配规则列表，把匹配的内容，替换成一个占位符
+function replaceWithPlaceholder (str, disableRules) {
+  for (let i = 0; i < disableRules.length; i++) {
+    str = replaceWithPlaceholderByRule(str, disableRules[i])
+  }
+  return str
+}
+
+// 把占位的内容，还原
+function placeholderRestore (str) {
+  str = str.replace(/(@@@@@@disableText_(\d+)@@@@@@)/g, function(match, key, key2, index) {
+    return disableTextArr[key2]
+  });
+  return str
+}
+
 function run () {
   const result = {}
   vfs
@@ -462,6 +505,10 @@ function run () {
       console.log('开始解析', file.path)
       const extname = path.extname(file.path)
       let fileContent = file.contents.toString()
+      
+      // 根据禁用匹配规则列表，把匹配的内容替换成一个占位符，之后check就不会check这些代码
+      fileContent = replaceWithPlaceholder(fileContent, config.disableRules)
+
       if (extname.toLowerCase() === '.vue') {
         const resultArr = processVueFile(fileContent)
         if (resultArr.length) {

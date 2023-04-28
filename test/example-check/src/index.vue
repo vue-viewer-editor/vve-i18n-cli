@@ -14,8 +14,9 @@
 
 const message1 = "您好"
 
+/* vve-i18n-zh-check-disable-next-line */
 const message2 = `引号`
-
+/* vve-i18n-zh-check-enabled */
 /**
  * 12312afsa你好22
  */
@@ -23,6 +24,7 @@ const message2 = `引号`
 export default {
   props: {
     type: {
+      // vve-i18n-zh-check-disable-next-line
       default: '我是属性'
     }
   },
@@ -31,12 +33,15 @@ export default {
       rules: [
         { 
           validator (rule, val, callback) {
-            callback(new Error("请输入"))
+            callback(new Error("请输入")) // vve-i18n-zh-check-disable-line
           }
         }
       ],
       obj: {
         其他: 'aaa'
+      },
+      props: {
+        title: '您好' // vve-i18n-zh-check-disable-line
       }
     }
   },

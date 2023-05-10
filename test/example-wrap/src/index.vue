@@ -6,6 +6,7 @@
       :title="$t('希望的田野')" v-bind:href="cc" @click="handleClick" checked disabled
       data-ad='aaa'
       :target="cc">  {{$t('希望的的田野')}}   </a>
+    <a>{{love ? $t('爱') : $t('不爱')}}</a>
   </div>
 </template>
 <script>

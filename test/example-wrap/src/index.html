@@ -10,6 +10,7 @@
   <div id="app">
     <div :title="$t('标题')"></div>
     <span data-local :data-text="$t('您好')">{{$t('您好')}}</span>
+    <a>{{love ? $t('爱') : $t('不爱')}}</a>
   </div>
   <script>
     new Vue({

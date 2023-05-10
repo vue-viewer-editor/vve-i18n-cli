@@ -477,6 +477,67 @@ function processHtmlFile (fileContent) {
     return match.replace(attrStr, newAttStr)
   })
   // console.log(newFileContent)
+  // 过滤出template相关内容，三目运算符中出现的表达式 hello ? '您好' : '再见'
+  // 过滤出三目信息
+  newFileContent = newFileContent.replace(conditionalTternaryOperatorReg, function (match, key1, key2, key3, key4, index) {
+    // console.log(key1, key2, key3, key4)
+    let newKey1 = key1 || key2
+    let newKey2 = key3 || key4
+
+    // 如果都含中文，就不处理
+    if (!i18nContentRegForTest.test(newKey1) && !i18nContentRegForTest.test(newKey2)) {
+      return match
+    }
+
+    let flag1 = false
+    let value = newKey1
+    for (let i = 0; i < ignoreText.length; i++) {
+      if (typeof ignoreText[i] === 'string') {
+        if (ignoreText[i] === value) {
+          flag1 = true
+          break
+        }
+      } else if (Object.prototype.toString.call(ignoreText[i]) === "[object RegExp]") {
+        if (ignoreText[i].test(value)) {
+          flag1 = true
+          break
+        }
+      }
+    }
+
+    let flag2 = false
+    value = newKey2
+    for (let i = 0; i < ignoreText.length; i++) {
+      if (typeof ignoreText[i] === 'string') {
+        if (ignoreText[i] === value) {
+          flag2 = true
+          break
+        }
+      } else if (Object.prototype.toString.call(ignoreText[i]) === "[object RegExp]") {
+        if (ignoreText[i].test(value)) {
+          flag2 = true
+          break
+        }
+      }
+    }
+
+    // 转换
+    let dot = newKey1.indexOf(`'`) !== -1 ? `"` : `'`
+    if (!flag1 && i18nContentRegForTest.test(newKey1)) {
+      newKey1 = `${vueI18nFuncName}(${dot}${newKey1}${dot})`
+    } else {
+      newKey1 = `${dot}${newKey1}${dot}`
+    }
+
+    dot = newKey2.indexOf(`'`) !== -1 ? `"` : `'`
+    if (!flag2 && i18nContentRegForTest.test(newKey2)) {
+      newKey2 = `${vueI18nFuncName}(${dot}${newKey2}${dot})`
+    } else {
+      newKey2 = `${dot}${newKey2}${dot}`
+    }
+    return `? ${newKey1} : ${newKey2}`
+  })
+  // console.log(newFileContent)
   // 再恢复 html 里的 script，style，link 代码块
   newFileContent = newFileContent.replace(/(@@scriptCodes_.*?@@)/ig, function(match, key, index) {
     const i = match.match(/@@scriptCodes_(.*?)@@/)[1];

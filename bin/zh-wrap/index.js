@@ -235,7 +235,7 @@ const TagContentReg = new RegExp('>((?:[^\x00-\xff]|\w|[:0-9{}.A-Za-z/\\s])+)<',
 // html start tag匹配正则
 const startTagReg = new RegExp(/<(?:[-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:@][-a-zA-Z0-9_:.]*(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(?:\/?)>/, 'g')
 // 三目预算法正则，简易版本
-const conditionalTternaryOperatorReg = /\?\s*(?:(?:"(.+?)")|(?:'(.+?)'))\s*:\s*(?:(?:"(.+?)")|(?:'(.+?)'))/g
+const conditionalTternaryOperatorReg = /\?\s*(?:(?:"([^"]+?)")|(?:'([^']+?)'))\s*:\s*(?:(?:"([^"]+?)")|(?:'([^']+?)'))/g
 // 属性的正则
 const attrReg = /([@:a-zA-Z_][-a-zA-Z0-9_.]*)(?:\s*=\s*(?:(?:"((?:\\.|[^"'])*)")|(?:'((?:\\.|[^'"])*)')))/g;
 // 前后非空白，这里必须是三个字符

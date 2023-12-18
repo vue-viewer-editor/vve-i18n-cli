@@ -216,6 +216,81 @@ function findClosingBracketMatchIndex(str, pos) {
   return -1
 }
 
+// 提取属性名称
+const propNameReg = /([a-zA-Z0-9_$]+)["']?[\s\n]*[:\(]+/i
+function matchPropName (fileContent, startIndex, endIndex) {
+  const str = fileContent.slice(startIndex, endIndex)
+  const match = propNameReg.exec(str)
+  if (match) {
+    // console.log(match[1], fileContent.charAt(startIndex + match.index))
+    return {
+      name: match[1],
+      index: startIndex + match.index,
+      fileContent,
+    }
+  }
+  return null
+}
+
+// 提取出data,computed,methods,props等信息
+const defaultObjReg = /export\s*default[\s\n]*{/i
+function getVueOptionsProps (fileContent) {
+
+  const arr = [] // [{ name: '', index: 100, fileContent: '' }]
+
+  let match = defaultObjReg.exec(fileContent)
+  if (match) {
+    let bracketIndex = match.index + match[0].length - 1
+    let closingBracketIndex = findClosingBracketMatchIndex(fileContent, bracketIndex)
+    if (closingBracketIndex !== -1) {
+      let str = fileContent.slice(bracketIndex + 1, closingBracketIndex)
+      let oldBracketIndex = bracketIndex
+      bracketIndex = str.indexOf('{');
+      if (bracketIndex !== -1) {
+        
+        bracketIndex = oldBracketIndex + bracketIndex + 1
+
+        // str = fileContent.slice(oldBracketIndex + 1, bracketIndex)
+        // 提取属性名
+        const obj = matchPropName(fileContent, oldBracketIndex + 1, bracketIndex)
+        if (obj) {
+          arr.push(obj)
+        }
+        
+        closingBracketIndex = findClosingBracketMatchIndex(fileContent, bracketIndex);
+        if (closingBracketIndex !== -1) {
+
+          while (true) {
+            const remainingPartStr = fileContent.slice(closingBracketIndex + 1)
+            oldBracketIndex = closingBracketIndex + 1
+            bracketIndex = remainingPartStr.indexOf('{');
+            if (bracketIndex !== -1) {
+              bracketIndex = oldBracketIndex + bracketIndex
+
+              // str = fileContent.slice(oldBracketIndex + 1, bracketIndex)
+              // 提取属性名
+              const obj = matchPropName(fileContent, oldBracketIndex + 1, bracketIndex)
+              if (obj) {
+                arr.push(obj)
+              }
+
+              closingBracketIndex = findClosingBracketMatchIndex(fileContent, bracketIndex);
+              if (closingBracketIndex === -1) {
+                break;
+              }
+            } else {
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return arr;
+}
+
+
 // 国际化文本，中文开头，可以包含中文数字.和空格，用户匹配
 const i18nContentReg = /(?![{}A-Za-z0-9.©×\-_!, ]+)([^\x00-\xff]|[A-Za-z0-9.©×\-_!, ])+/g
 // 处理template
@@ -263,10 +338,14 @@ function processVueFile (fileContent) {
     }
   }
 
+  // 获取vue的属性列表
+  const vueOptionsPropsList = getVueOptionsProps(fileContent)
+
   // 处理props: {} 中间的中文
   let propsMatch = propsReg.exec(fileContent)
-  if (propsMatch) {
-    // console.log(propsMatch[0])
+  let vuePropInfo = vueOptionsPropsList.find(item => item.name === 'props')
+  if (propsMatch && vuePropInfo && propsMatch.index === vuePropInfo.index) {
+    console.log(propsMatch)
     const propsStartIndex = propsMatch.index + propsMatch[0].length - 1
     const propsCloseIndex = findClosingBracketMatchIndex(fileContent, propsStartIndex)
     if (propsCloseIndex !== -1) {

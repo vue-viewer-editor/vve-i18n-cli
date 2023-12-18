@@ -65,7 +65,7 @@ program
     "--config <path>",
     "配置文件的路径，没有配置，默认路径是在${cwd}/vve-i18n-cli.config.js"
   )
-  .option("--no-config", "是否取配置文件")
+  .option("--disable-config-file", "是否取配置文件")
   .option("-t, --translate", "是否翻译")
   .option("--translate-from-lang", "翻译的基础语言，默认是用中文翻译")
   .option(
@@ -116,7 +116,7 @@ const config = {
   // 配置文件的路径，没有配置，默认路径是在${cwd}/vve-i18n-cli.config.js
   config: undefined,
   // 是否取配置文件
-  noConfig: false,
+  disableConfigFile: false,
   // 是否翻译
   translate: false,
   // 翻译的基础语言，默认是用中文翻译
@@ -140,7 +140,7 @@ const CONFIG_JS_FILENAME = "vve-i18n-cli.config.js";
 let absoluteCwd = path.resolve(config.cwd);
 
 // 优先判断是否需要读取文件
-if (!config.noConfig) {
+if (!config.disableConfigFile) {
   let configFilePath = path.join(absoluteCwd, CONFIG_JS_FILENAME);
   if (config.config) {
     configFilePath = path.resolve(config.config);

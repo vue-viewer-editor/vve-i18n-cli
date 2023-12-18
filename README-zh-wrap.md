@@ -97,7 +97,7 @@ program
     "--config <path>",
     "配置文件的路径，没有配置，默认路径是在${cwd}/vve-i18n-cli.config.js"
   )
-  .option("--no-config", "是否取配置文件")
+  .option("--disable-config-file", "是否取配置文件")
   .option(
     "--i18n-file-rules <items>",
     "匹配含有国际化文本的文件规则",
@@ -159,7 +159,7 @@ const config = {
   // 配置文件的路径，没有配置，默认路径是在${cwd}/vve-i18n-cli.config.js
   config: undefined,
   // 是否取配置文件
-  noConfig: false,
+  disableConfigFile: false,
   // 匹配含有国际化文本的文件规则
   i18nFileRules: ["**/*.+(vue|js)"],
   // 不匹配含有国际化文本的文件规则

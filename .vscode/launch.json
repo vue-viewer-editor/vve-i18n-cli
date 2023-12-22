@@ -33,6 +33,16 @@
       ],
       "program": "${workspaceFolder}/bin/zh-check/index.js",
       "args": ["--cwd", "./test/example-check"],
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "vve-i18n-zh-extract-cli",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/bin/zh-extract/index.js",
+      "args": ["--cwd", "./test/example-extract"],
     }
   ]
 }

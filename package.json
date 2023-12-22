@@ -5,10 +5,12 @@
   "bin": {
     "vve-i18n-cli": "./bin/index.js",
     "vve-i18n-zh-wrap-cli": "./bin/zh-wrap/index.js",
-    "vve-i18n-zh-check-cli": "./bin/zh-check/index.js"
+    "vve-i18n-zh-check-cli": "./bin/zh-check/index.js",
+    "vve-i18n-zh-extract-cli": "./bin/zh-extract/index.js"
   },
   "files": [
     "bin",
+    "README-zh-extract.md",
     "README-zh-check.md",
     "README-zh-wrap.md",
     "README.md"
@@ -38,6 +40,7 @@
     "jsonfile": "^5.0.0",
     "lodash.uniq": "^4.5.0",
     "map-stream": "0.0.7",
+    "objects-to-csv": "^1.3.6",
     "translation.js": "^0.7.9",
     "vinyl-fs": "^3.0.3"
   },

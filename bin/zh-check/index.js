@@ -38,7 +38,7 @@ program
     commaSeparatedList
   )
   .option(
-    "--disabledRules <items>",
+    "--disabled-rules <items>",
     "如果满足匹配的内容，就忽略检查",
     commaSeparatedList
   )

@@ -3,8 +3,8 @@
 [![Build Status](https://travis-ci.org/vue-viewer-editor/vve-i18n-cli.svg?branch=master)](https://travis-ci.org/vue-viewer-editor/vve-i18n-cli)
 
 使用[vve-i18n-zh-wrap-cli](README-zh-wrap.md)把vue和js中的中文包裹一层国际化函数，但有些中文无法被包裹或者包裹后可能会导致程序异常。
-使用`vve-i18n-zh-check-cli`可以提前检测这些中文的存在，并给出相关的信息提醒开发者进行修订。
 
+使用 `vve-i18n-zh-check-cli`可以提前检测这些中文的存在，并给出相关的信息提醒开发者进行修订。
 
 ## 例子
 
@@ -77,11 +77,11 @@ export default {
 
 ### script-pre
 
-`<script>` 到 `export default` 中间出现的中文，建议把这一部分功能转移到vue对象中实现，避免`this`指针异常
+`<script>` 到 `export default` 中间出现的中文，建议把这一部分功能转移到vue对象中实现，避免 `this`指针异常
 
 ### props
 
-`props: {}`中间出现的中文，建议这一块利用`computed`改写一下
+`props: {}`中间出现的中文，建议这一块利用 `computed`改写一下
 
 ### back-quote
 
@@ -89,7 +89,7 @@ export default {
 
 ### validator
 
-`validator () {}` 中间出现的中文，建议使用箭头函数实现，避免`this`指针异常
+`validator () {}` 中间出现的中文，建议使用箭头函数实现，避免 `this`指针异常
 
 ## 安装
 
@@ -194,7 +194,6 @@ const config = {
   ],
 };
 ```
-
 
 ### 开发
 

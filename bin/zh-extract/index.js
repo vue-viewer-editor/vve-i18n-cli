@@ -207,9 +207,6 @@ function processFile (fileContent) {
     // 计算文本所在的行和列
     const { row, col } = calculatePosition(fileContent, textIndex)
 
-    // 打印输出
-    console.log(key)
-
     arr.push({
       label: key,
       index: textIndex,
@@ -247,10 +244,13 @@ function run () {
     const filesPathArr = Object.keys(result)
     if (filesPathArr.length) {
       // 处理结果数据
+      console.log('---提取结果---')
       const outArr = []
       for (let i = 0; i < filesPathArr.length; i++) {
         const path = filesPathArr[i]
+        console.log(`文件：${path}`)
         for (let j = 0; j < result[path].length; j++) {
+          console.log(result[path][j].label)
           outArr.push({ path, ...result[path][j] })
         }
       }
@@ -261,7 +261,7 @@ function run () {
       }
       console.log('---提取完成---')
     } else {
-      console.log('---提取结束，无可提取的内容---')
+      console.log('---提取完成，无可提取的内容---')
     }
   });
 }

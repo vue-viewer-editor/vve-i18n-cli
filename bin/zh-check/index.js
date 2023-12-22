@@ -345,7 +345,6 @@ function processVueFile (fileContent) {
   let propsMatch = propsReg.exec(fileContent)
   let vuePropInfo = vueOptionsPropsList.find(item => item.name === 'props')
   if (propsMatch && vuePropInfo && propsMatch.index === vuePropInfo.index) {
-    console.log(propsMatch)
     const propsStartIndex = propsMatch.index + propsMatch[0].length - 1
     const propsCloseIndex = findClosingBracketMatchIndex(fileContent, propsStartIndex)
     if (propsCloseIndex !== -1) {

@@ -1,4 +1,4 @@
-# vve-i18n-zh-check-cli
+# vve-i18n-zh-extract-cli
 
 [![Build Status](https://travis-ci.org/vue-viewer-editor/vve-i18n-cli.svg?branch=master)](https://travis-ci.org/vue-viewer-editor/vve-i18n-cli)
 
@@ -6,8 +6,7 @@
 
 使用[vve-i18n-zh-check-cli](README-zh-check.md)可以提前检测这些中文的存在，并给出相关的信息提醒开发者进行修订，但提供的信息相对有限，还是有一些中文遗留。
 
-使用`vve-i18n-zh-extract-cli`可以提取中文，配置忽略规则，可以提取出所有上述工具无法处理的中文，后根据提取结果人工进行甄别判断处理。
-
+使用 `vve-i18n-zh-extract-cli`可以提取中文，配置忽略规则，可以提取出所有上述工具无法处理的中文，后根据提取结果人工进行甄别判断处理。
 
 ## 例子
 
@@ -198,7 +197,6 @@ const config = {
   outCsv: false,
 };
 ```
-
 
 ### 开发
 

@@ -264,11 +264,11 @@ function processVueFile (fileContent) {
         }
 
         // 例子 <p> 啦啦啦 </p>  变成 <p> {{$t('啦啦啦')}} </p>
-        return match.replace(trimMatch, `{{${vueI18nFuncName}('${trimMatch}')}}`)
+        return match.replace(trimMatch, `{{${vueI18nFuncName}('${trimMatch}')}}`.replace(/\$/g, "$$$$"))
       })
-      return match.replace(tagContentKey, newTagContentKey)
+      return match.replace(tagContentKey, newTagContentKey.replace(/\$/g, "$$$$"))
     })
-    return match.replace(templateKey, newTemplateKey)
+    return match.replace(templateKey, newTemplateKey.replace(/\$/g, "$$$$"))
   })
   // console.log(newFileContent)
   // 过滤出template相关内容，处理tag属性的国际化
@@ -302,9 +302,9 @@ function processVueFile (fileContent) {
         // vueI18nFuncName = '$t' => `$t(${value})`
         return `:${name}="${vueI18nFuncName}('${value}')"`
       })
-      return match.replace(attrStr, newAttStr)
+      return match.replace(attrStr, newAttStr.replace(/\$/g, "$$$$"))
     })
-    return match.replace(templateKey, newTemplateKey)
+    return match.replace(templateKey, newTemplateKey.replace(/\$/g, "$$$$"))
   })
 
   // console.log(newFileContent)
@@ -369,7 +369,7 @@ function processVueFile (fileContent) {
       }
       return `? ${newKey1} : ${newKey2}`
     })
-    return match.replace(templateKey, newTemplateKey)
+    return match.replace(templateKey, newTemplateKey.replace(/\$/g, "$$$$"))
   })
   // console.log(newFileContent)
   // 过滤出script相关内容，过滤出被引号包裹的中文字符串，对这种类型进行替换国际化替换
@@ -394,7 +394,9 @@ function processVueFile (fileContent) {
       // bug 如果scriptKey出现$结尾的，比如'$'，及时replace两者一样，还是会被替换
       return match
     } else {
-      return match.replace(scriptKey, newScriptKey)
+      // replacement中$$才被当作一个$。所以我们把$替换成 $$$$ 就好，否则转换将出现异常
+      // 会出现结束符异常
+      return match.replace(scriptKey, newScriptKey.replace(/\$/g, "$$$$"))
     }
   })
   // console.log(newFileContent)
@@ -440,9 +442,9 @@ function processHtmlFile (fileContent) {
       }
 
       // 例子 <p> 啦啦啦 </p>  变成 <p> {{$t('啦啦啦')}} </p>
-      return match.replace(trimMatch, `{{${vueI18nFuncName}('${trimMatch}')}}`)
+      return match.replace(trimMatch, `{{${vueI18nFuncName}('${trimMatch}')}}`.replace(/\$/g, "$$$$"))
     })
-    return match.replace(tagContentKey, newTagContentKey)
+    return match.replace(tagContentKey, newTagContentKey.replace(/\$/g, "$$$$"))
   })
   // console.log(newFileContent)
   // 过滤出template相关内容，处理tag属性的国际化
@@ -474,7 +476,7 @@ function processHtmlFile (fileContent) {
       // vueI18nFuncName = '$t' => `$t(${value})`
       return `:${name}="${vueI18nFuncName}('${value}')"`
     })
-    return match.replace(attrStr, newAttStr)
+    return match.replace(attrStr, newAttStr.replace(/\$/g, "$$$$"))
   })
   // console.log(newFileContent)
   // 过滤出template相关内容，三目运算符中出现的表达式 hello ? '您好' : '再见'
@@ -541,15 +543,15 @@ function processHtmlFile (fileContent) {
   // 再恢复 html 里的 script，style，link 代码块
   newFileContent = newFileContent.replace(/(@@scriptCodes_.*?@@)/ig, function(match, key, index) {
     const i = match.match(/@@scriptCodes_(.*?)@@/)[1];
-    return match.replace(key, scriptCodes[i]);
+    return match.replace(key, scriptCodes[i].replace(/\$/g, "$$$$"));
   });
   newFileContent = newFileContent.replace(/(@@styleCodes_.*?@@)/ig, function(match, key, index) {
     const i = match.match(/@@styleCodes_(.*?)@@/)[1];
-    return match.replace(key, styleCodes[i]);
+    return match.replace(key, styleCodes[i].replace(/\$/g, "$$$$"));
   });
   newFileContent = newFileContent.replace(/(@@linkCodes_.*?@@)/ig, function(match, key, index) {
     const i = match.match(/@@linkCodes_(.*?)@@/)[1];
-    return match.replace(key, linkCodes[i]);
+    return match.replace(key, linkCodes[i].replace(/\$/g, "$$$$"));
   });
  
   return newFileContent

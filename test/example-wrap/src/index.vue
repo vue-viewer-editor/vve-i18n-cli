@@ -25,6 +25,9 @@ export default {
   },
   computed: {
     world () {
+      // `中文${this.testDisabled}` 
+      const backTick = this.$t('中文{0}', [this.testDisabled])
+
       let content = this.$t(
         '我换行了'
       )

@@ -242,6 +242,8 @@ const attrReg = /([@:a-zA-Z_][-a-zA-Z0-9_.]*)(?:\s*=\s*(?:(?:"((?:\\.|[^"'])*)")
 const nonPreSubWhiteReg = /\S.+\S/
 // 国际化字符串，被单引号或者双引号包裹，内容中文开头
 const i18nStrReg = /"([^"{}\n]*[^\x00-\xff]+[^"{}\n]*)"|'([^'{}\n]*[^\x00-\xff]+[^'{}\n]*)'/g
+// 国际化字符串，被反引号包裹，内容中文开头
+const i18nStrRegForBacktick = /`([^`\n]*[^\x00-\xff]+[^`\n]*)`/g
 
 // 解析vue文件
 function processVueFile (fileContent) {
@@ -399,6 +401,115 @@ function processVueFile (fileContent) {
       return match.replace(scriptKey, newScriptKey.replace(/\$/g, "$$$$"))
     }
   })
+
+  // console.log(newFileContent)
+  // 过滤出script相关内容，过滤出反引号包裹的中文字符串，对这种类型进行替换国际化替换
+  newFileContent = newFileContent.replace(templateReg, function (match, templateKey, index) {
+    let newTemplateKey = templateKey.replace(i18nStrRegForBacktick, function (match, key, index) {
+      for (let i = 0; i < ignorePreReg.length; i++) {
+        if (prefixTestReg(ignorePreReg[i], templateKey, match, index, 50)) return match
+      }
+      for (let i = 0; i < ignoreText.length; i++) {
+        if (typeof ignoreText[i] === 'string') {
+          if (ignoreText[i] === match.slice(1, -1)) return match
+        } else if (Object.prototype.toString.call(ignoreText[i]) === "[object RegExp]") {
+          if (ignoreText[i].test(match.slice(1, -1))) return match
+        }
+      }
+
+      // 如果是 标签模板字符串 就忽略掉，不处理，应为前面带有函数名，有特殊用途，无法正常转国际化
+      if (/[a-zA-Z0-9_\$]/.test(templateKey[index -1])) {
+        return match
+      }
+
+      let mIndex = 0;
+      const variables = [];
+      const convertedString = match.slice(1, -1).replace(/\$\{([^}]+)\}/g, (match, key) => {
+        variables.push(key.trim());
+        mIndex++;
+        return `{${mIndex - 1}}`;
+      });
+
+      // 如果反引号中存在两种引号则无法处理
+      if (convertedString.indexOf("'") !== -1 && convertedString.indexOf('"') !== -1) {
+        return match
+      }
+
+      // 确定使用的引号
+      const dot = convertedString.indexOf("'") !== -1 ? '"' : "'"
+
+      if (variables.length) {
+        // "My name is ${name} and I am ${age} years old.";
+        // 转换后的结果 this.$t("My name is {0} and I am {1} years old.", [name, age])
+        return `${vueI18nFuncName}(${dot}${convertedString}${dot}, [${variables.join(', ')}])`
+      } else {
+        return `${vueI18nFuncName}(${dot}${convertedString}${dot})`
+      }
+    })
+
+    if (templateKey === newTemplateKey) {
+      return match
+    } else {
+      // replacement中$$才被当作一个$。所以我们把$替换成 $$$$ 就好，否则转换将出现异常
+      // 会出现结束符异常
+      return match.replace(templateKey, newTemplateKey.replace(/\$/g, "$$$$"))
+    }
+  })
+
+  // console.log(newFileContent)
+  // 过滤出script相关内容，过滤出反引号包裹的中文字符串，对这种类型进行替换国际化替换
+  newFileContent = newFileContent.replace(scriptReg, function (match, scriptKey, index) {
+    let newScriptKey = scriptKey.replace(i18nStrRegForBacktick, function (match, key, index) {
+      for (let i = 0; i < ignorePreReg.length; i++) {
+        if (prefixTestReg(ignorePreReg[i], scriptKey, match, index, 50)) return match
+      }
+      for (let i = 0; i < ignoreText.length; i++) {
+        if (typeof ignoreText[i] === 'string') {
+          if (ignoreText[i] === match.slice(1, -1)) return match
+        } else if (Object.prototype.toString.call(ignoreText[i]) === "[object RegExp]") {
+          if (ignoreText[i].test(match.slice(1, -1))) return match
+        }
+      }
+
+      // 如果是 标签模板字符串 就忽略掉，不处理，应为前面带有函数名，有特殊用途，无法正常转国际化
+      if (/[a-zA-Z0-9_\$]/.test(scriptKey[index -1])) {
+        return match
+      }
+
+      let mIndex = 0;
+      const variables = [];
+      const convertedString = match.slice(1, -1).replace(/\$\{([^}]+)\}/g, (match, key) => {
+        variables.push(key.trim());
+        mIndex++;
+        return `{${mIndex - 1}}`;
+      });
+
+      // 如果反引号中存在两种引号则无法处理
+      if (convertedString.indexOf("'") !== -1 && convertedString.indexOf('"') !== -1) {
+        return match
+      }
+
+      // 确定使用的引号
+      const dot = convertedString.indexOf("'") !== -1 ? '"' : "'"
+
+      if (variables.length) {
+        // "My name is ${name} and I am ${age} years old.";
+        // 转换后的结果 this.$t("My name is {0} and I am {1} years old.", [name, age])
+        return `this.${vueI18nFuncName}(${dot}${convertedString}${dot}, [${variables.join(', ')}])`
+      } else {
+        return `this.${vueI18nFuncName}(${dot}${convertedString}${dot})`
+      }
+    })
+
+    if (scriptKey === newScriptKey) {
+      // bug 如果scriptKey出现$结尾的，比如'$'，及时replace两者一样，还是会被替换
+      return match
+    } else {
+      // replacement中$$才被当作一个$。所以我们把$替换成 $$$$ 就好，否则转换将出现异常
+      // 会出现结束符异常
+      return match.replace(scriptKey, newScriptKey.replace(/\$/g, "$$$$"))
+    }
+  })
   // console.log(newFileContent)
   return newFileContent
 }
@@ -539,6 +650,50 @@ function processHtmlFile (fileContent) {
     }
     return `? ${newKey1} : ${newKey2}`
   })
+
+
+  newFileContent = newFileContent.replace(i18nStrRegForBacktick, function (match, key, index) {
+    for (let i = 0; i < ignorePreReg.length; i++) {
+      if (prefixTestReg(ignorePreReg[i], newFileContent, match, index, 50)) return match
+    }
+    for (let i = 0; i < ignoreText.length; i++) {
+      if (typeof ignoreText[i] === 'string') {
+        if (ignoreText[i] === match.slice(1, -1)) return match
+      } else if (Object.prototype.toString.call(ignoreText[i]) === "[object RegExp]") {
+        if (ignoreText[i].test(match.slice(1, -1))) return match
+      }
+    }
+
+    // 如果是 标签模板字符串 就忽略掉，不处理，应为前面带有函数名，有特殊用途，无法正常转国际化
+    if (/[a-zA-Z0-9_\$]/.test(newFileContent[index -1])) {
+      return match
+    }
+
+    let mIndex = 0;
+    const variables = [];
+    const convertedString = match.slice(1, -1).replace(/\$\{([^}]+)\}/g, (match, key) => {
+      variables.push(key.trim());
+      mIndex++;
+      return `{${mIndex - 1}}`;
+    });
+
+    // 如果反引号中存在两种引号则无法处理
+    if (convertedString.indexOf("'") !== -1 && convertedString.indexOf('"') !== -1) {
+      return match
+    }
+
+    // 确定使用的引号
+    const dot = convertedString.indexOf("'") !== -1 ? '"' : "'"
+
+    if (variables.length) {
+      // "My name is ${name} and I am ${age} years old.";
+      // 转换后的结果 this.$t("My name is {0} and I am {1} years old.", [name, age])
+      return `${vueI18nFuncName}(${dot}${convertedString}${dot}, [${variables.join(', ')}])`
+    } else {
+      return `${vueI18nFuncName}(${dot}${convertedString}${dot})`
+    }
+  })
+
   // console.log(newFileContent)
   // 再恢复 html 里的 script，style，link 代码块
   newFileContent = newFileContent.replace(/(@@scriptCodes_.*?@@)/ig, function(match, key, index) {
@@ -574,6 +729,50 @@ function processJsFile (fileContent) {
     // jsI18nFuncName = 'i18n.t' => `i18n.t(${match})`
     return `${jsI18nFuncName}(${match})`
   })
+
+  // 过滤出script相关内容，过滤出反引号包裹的中文字符串，对这种类型进行替换国际化替换
+  newFileContent = newFileContent.replace(i18nStrRegForBacktick, function (match, key, index) {
+    for (let i = 0; i < ignorePreReg.length; i++) {
+      if (prefixTestReg(ignorePreReg[i], newFileContent, match, index, 50)) return match
+    }
+    for (let i = 0; i < ignoreText.length; i++) {
+      if (typeof ignoreText[i] === 'string') {
+        if (ignoreText[i] === match.slice(1, -1)) return match
+      } else if (Object.prototype.toString.call(ignoreText[i]) === "[object RegExp]") {
+        if (ignoreText[i].test(match.slice(1, -1))) return match
+      }
+    }
+
+    // 如果是 标签模板字符串 就忽略掉，不处理，应为前面带有函数名，有特殊用途，无法正常转国际化
+    if (/[a-zA-Z0-9_\$]/.test(newFileContent[index -1])) {
+      return match
+    }
+
+    let mIndex = 0;
+    const variables = [];
+    const convertedString = match.slice(1, -1).replace(/\$\{([^}]+)\}/g, (match, key) => {
+      variables.push(key.trim());
+      mIndex++;
+      return `{${mIndex - 1}}`;
+    });
+
+    // 如果反引号中存在两种引号则无法处理
+    if (convertedString.indexOf("'") !== -1 && convertedString.indexOf('"') !== -1) {
+      return match
+    }
+
+    // 确定使用的引号
+    const dot = convertedString.indexOf("'") !== -1 ? '"' : "'"
+
+    if (variables.length) {
+      // "My name is ${name} and I am ${age} years old.";
+      // 转换后的结果 i18n.t("My name is {0} and I am {1} years old.", [name, age])
+      return `${jsI18nFuncName}(${dot}${convertedString}${dot}, [${variables.join(', ')}])`
+    } else {
+      return `${jsI18nFuncName}(${dot}${convertedString}${dot})`
+    }
+  })
+
   if (newFileContent !== fileContent && fileContent.indexOf(i18nImportForJs) === -1 && i18nImportForJs) {
     newFileContent = i18nImportForJs + '\n' + newFileContent
   }

@@ -75,7 +75,7 @@ const config = {
     /t\s*\([\s\n]*$/,
     /tl\s*\([\s\n]*$/,
     /console\.(?:log|error|warn|info|debug)\s*\(\s*$/,
-    new RegExp("//.+"),
+    new RegExp("//.*"),
   ],
   // 被忽略的文本
   ignoreText: [

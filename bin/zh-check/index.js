@@ -33,6 +33,10 @@ program
     commaSeparatedList
   )
   .option(
+    "--disable-check-back-quote",
+    "是否禁用检查反引号",
+  )
+  .option(
     "--ignore-text-in-quote-rules <items>",
     "反引号中需要忽略的文本规则，可以是正则或者字符串",
     commaSeparatedList
@@ -57,6 +61,8 @@ const config = {
   i18nFileRules: ["**/*.+(vue|js)"],
   // 不匹配含有国际化文本的文件规则
   ignoreI18nFileRules: [],
+  // 是否禁用检查反引号，应为zh-wrap支持引号代码国际化转换，故可以通过此配置，去掉检查的引号的行为
+  disableCheckBackQuote: false,
   // 反引号中需要忽略的文本规则，可以是正则或者字符串
   ignoreTextInQuoteRules: [
     /t\(/
@@ -97,7 +103,7 @@ if (!program.cwd) {
   absoluteCwd = path.resolve(config.cwd);
 }
 
-const { ignoreTextInQuoteRules } = config
+const { ignoreTextInQuoteRules, disableCheckBackQuote } = config
 
 const absoluteRootDir = path.resolve(absoluteCwd, config.rootDir);
 
@@ -370,7 +376,7 @@ function processVueFile (fileContent) {
 
   // 处理``中间中文的处理
   let backQuoteMatch
-  while (backQuoteMatch = backQuoteReg.exec(fileContent)) {
+  while (!disableCheckBackQuote && (backQuoteMatch = backQuoteReg.exec(fileContent))) {
     if (backQuoteMatch) {
       // 忽略被/* */ 注释的中文
       if (isWrapByStartComment(fileContent, backQuoteMatch[0], backQuoteMatch.index)) {
@@ -474,7 +480,7 @@ function processJsFile (fileContent) {
 
   // 处理``中间中文的处理
   let backQuoteMatch
-  while (backQuoteMatch = backQuoteReg.exec(fileContent)) {
+  while (!disableCheckBackQuote && (backQuoteMatch = backQuoteReg.exec(fileContent))) {
     if (backQuoteMatch) {
       // 忽略被/* */ 注释的中文
       if (isWrapByStartComment(fileContent, backQuoteMatch[0], backQuoteMatch.index)) {

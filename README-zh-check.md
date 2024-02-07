@@ -116,7 +116,6 @@ $ npm install vve-i18n-cli
 ### 命令行指定参数
 
 ```javascript
-
 program
   .version(require('../../package.json').version)
   .option("--cwd <path>", "工作目录")
@@ -137,12 +136,16 @@ program
     commaSeparatedList
   )
   .option(
+    "--disable-check-back-quote",
+    "是否禁用检查反引号",
+  )
+  .option(
     "--ignore-text-in-quote-rules <items>",
     "反引号中需要忽略的文本规则，可以是正则或者字符串",
     commaSeparatedList
   )
   .option(
-    "--disabledRules <items>",
+    "--disabled-rules <items>",
     "如果满足匹配的内容，就忽略检查",
     commaSeparatedList
   )
@@ -179,6 +182,8 @@ const config = {
   i18nFileRules: ["**/*.+(vue|js)"],
   // 不匹配含有国际化文本的文件规则
   ignoreI18nFileRules: [],
+  // 是否禁用检查反引号，应为zh-wrap支持引号代码国际化转换，故可以通过此配置，去掉检查的引号的行为
+  disableCheckBackQuote: false,
   // 反引号中需要忽略的文本规则，可以是正则或者字符串
   ignoreTextInQuoteRules: [
     /t\(/

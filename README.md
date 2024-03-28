@@ -80,13 +80,29 @@ program
     "配置文件的路径，没有配置，默认路径是在${cwd}/vve-i18n-cli.config.js"
   )
   .option("--disable-config-file", "是否取配置文件")
-  .option("-t, --translate", "是否翻译")
+  .option("-t, --translate", "是否翻译，只翻译每次执行提取到新的key，且满足translateValueRules规则")
   .option("--translate-from-lang", "翻译的基础语言，默认是用中文翻译")
   .option(
     "--force-translate",
-    "是否强制翻译，即已翻译修改的内容，也重新用翻译生成"
+    "是否强制翻译，将遍历所有的key，且需满足translateValueRules规则"
   )
   .option("--translate-language <items>", "翻译的语言", commaSeparatedList)
+  .option(
+    "--translate-use-pin-yin",
+    "非中文使用拼音来来翻译"
+  )
+  .option("--translate-baidu-appid <item>", "Baidu翻译appId")
+  .option("--translate-baidu-key <item>", "Baidu翻译key")
+  .option(
+    "--translate-value-rules <items>",
+    "需要翻译的Value的规则，只有value满足此条件才会翻译，如果配置空数组，则表示全部都需要翻译",
+    commaSeparatedList
+  )
+  .option(
+    "--translate-ignore-key-rules <items>",
+    "忽略翻译KEY的规则，规则可以是一个字符串，正则，或者是函数",
+    commaSeparatedList
+  )
   .option("--copy-index", "模块下${outDir}/index.js文件不存在才拷贝index.js")
   .option("--force-copy-index", "是否强制拷贝最新index.js")
   .parse(process.argv);
@@ -141,16 +157,26 @@ const config = {
   config: undefined,
   // 是否取配置文件
   disableConfigFile: false,
-  // 是否翻译
+  // 是否翻译，只翻译每次执行提取到新的key，且满足translateValueRules规则
   translate: false,
   // 翻译的基础语言，默认是用中文翻译
   translateFromLang: "zh",
-  // 是否强制翻译，即已翻译修改的内容，也重新用翻译生成
+  // 是否强制翻译，将遍历所有的key，且需满足translateValueRules规则
   forceTranslate: false,
   // 翻译的语言
   translateLanguage: ["zh", "en"],
   // 非中文使用拼音来来翻译
   translateUsePinYin: false,
+  // Baidu翻译appId
+  translateBaiduAppid: '',
+  // Baidu翻译key
+  translateBaiduKey: '',
+  // 需要翻译的Value的规则，只有value满足此条件才会翻译，如果配置空数组，则表示全部都需要翻译
+  translateValueRules: [
+    /[^\x00-\xff]+/ // 中文
+  ],
+  // 忽略翻译KEY的规则，规则可以是一个字符串，正则，或者是函数
+  translateIgnoreKeyRules: [],
   // 模块下${outDir}/index.js文件不存在才拷贝index.js
   copyIndex: false,
   // 是否强制拷贝最新index.js

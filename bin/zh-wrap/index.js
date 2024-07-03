@@ -818,6 +818,10 @@ function run () {
   )
   .pipe(
     map((file, cb) => {
+      if (file.isDirectory()) {
+        cb()
+        return
+      }
       console.log('开始解析', file.path)
       const extname = path.extname(file.path)
       let originfileContent = file.contents.toString()

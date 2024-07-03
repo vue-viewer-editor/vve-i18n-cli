@@ -351,8 +351,10 @@ vfs
         })
         .pipe(
           map((file, cb) => {
-            const contents = file.contents.toString();
-            getModuleI18nData(modulePath, contents);
+            if (!file.isDirectory()) {
+              const contents = file.contents.toString();
+              getModuleI18nData(modulePath, contents);
+            }
             cb(null);
           })
         )

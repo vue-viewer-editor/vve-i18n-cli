@@ -153,6 +153,10 @@ const config = {
     "zh", // 中文
     "en" // 英文
   ],
+  // 忽略特定语言国际化的key, 他的格式 { zh: { ignore: true, keepKeyRules: [] } }
+  // 根据设置的语言，ignore: true 表示忽略这个语言的所有 值与key相同 的key，不生成在国际化资源文件中，keepKeyRules表示强制保留某些key
+  // 因为一般是中文做key，生成的value也是中文，一般这种情况下，key和value是一样的，会增加体积，是用此参数可以减少这种key的生成在资源文件中，减少体积。
+  ignoreKeyValueSameKeys: {},
   // 配置文件的路径，没有配置，默认路径是在${cwd}/vve-i18n-cli.config.js
   config: undefined,
   // 是否取配置文件

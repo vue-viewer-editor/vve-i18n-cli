@@ -231,7 +231,7 @@ const templateReg = new RegExp("<template>([\\s\\S]+)<\\/template>", "i")
 // 处理script
 const scriptReg = /<script(?:\s*|\s+.+?)>([\s\S]+)<\/script>/i
 // tag的内容正则匹配
-const TagContentReg = new RegExp('>((?:[^\x00-\xff]|\w|[:0-9{}()\\[\\]\\*-.A-Za-z/\\s])+)<', 'g')
+const TagContentReg = new RegExp('>((?:[^\x00-\xff]|\w|[:0-9{}()\\[\\]*-.A-Za-z/\\s])+)<', 'g')
 // html start tag匹配正则
 const startTagReg = new RegExp(/<(?:[-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:@][-a-zA-Z0-9_:.]*(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(?:\/?)>/, 'g')
 // 三目预算法正则，简易版本

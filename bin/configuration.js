@@ -18,22 +18,23 @@ async function loadConfig(filepath) {
 
 async function readConfig(filepath) {
   let options;
+
+  let configModule
   try {
-    let configModule
-    try {
-      configModule = require(filepath);
-    } catch (e) {
-      configModule = await import(pathToFileURL(filepath).href);
-    }
+    configModule = require(filepath);
     options =
       configModule && configModule.__esModule
         ? configModule.default || undefined
         : configModule;
-  } catch (err) {
-    console.log('readConfig', err)
-    throw err;
-  } finally {
+  } catch (e) {
+    try {
+      configModule = await import(pathToFileURL(filepath).href);
+      options = configModule.default
+    } catch (e) {
+      console.error(e)
+    }
   }
+
   return {
     filepath,
     dirname: path.dirname(filepath),

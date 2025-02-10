@@ -109,165 +109,169 @@ const config = {
   outCsv: false,
 };
 
-Object.assign(config, program);
+async function init () {
+  Object.assign(config, program);
 
-const CONFIG_JS_FILENAME = "vve-i18n-cli.config.js";
+  const CONFIG_JS_FILENAME = "vve-i18n-cli.config.js";
 
-let absoluteCwd = path.resolve(config.cwd);
+  let absoluteCwd = path.resolve(config.cwd);
 
-// 优先判断是否需要读取文件
-if (!config.disableConfigFile) {
-  let configFilePath = path.join(absoluteCwd, CONFIG_JS_FILENAME);
-  if (config.config) {
-    configFilePath = path.resolve(config.config);
-  }
-  if (fs.existsSync(configFilePath)) {
-    const conf = loadConfig(configFilePath);
-    if (conf && conf.options && conf.options.zhExtract) {
-      Object.assign(config, conf.options.zhExtract, program);
+  // 优先判断是否需要读取文件
+  if (!config.disableConfigFile) {
+    let configFilePath = path.join(absoluteCwd, CONFIG_JS_FILENAME);
+    if (config.config) {
+      configFilePath = path.resolve(config.config);
     }
-  }
-}
-
-// 制定配置文件后，cwd在配置文件中定义，则cwd就需要重新获取
-if (!program.cwd) {
-  absoluteCwd = path.resolve(config.cwd);
-}
-
-// 输出目录
-let outPath = path.resolve(absoluteCwd)
-if(config.outDir) {
-  outPath = path.resolve(outPath, config.outDir)
-}
-
-const { customIgnoreWrap, ignoreWrap, ignoreDisableWrap } = config
-
-const allIgnoreWrap = [...ignoreWrap, ...ignoreDisableWrap, ...customIgnoreWrap]
-
-const absoluteRootDir = path.resolve(absoluteCwd, config.rootDir);
-
-const testRules = utils.testRules
-const calculatePosition = utils.calculatePosition
-
-// 解析包裹信息
-function parseCodeWrappers(code, wrappers) {
-  const results = [];
-
-  wrappers.forEach(wrapper => {
-    const { name, start, end, regex } = wrapper;
-    const mReg = new RegExp(regex, 'g');
-    let match;
-    
-    while ((match = mReg.exec(code))) {
-      const startIndex = match.index + match[1].length;
-      const endIndex = startIndex + match[2].length;
-      results.push({ name, startIndex, endIndex });
-    }
-  });
-
-  return results;
-}
-
-// 是否被包裹
-function isPositionWrapped(index, wrappedItems) {
-  for (let i = 0; i < wrappedItems.length; i++) {
-    const { startIndex, endIndex } = wrappedItems[i];
-    if (index >= startIndex && index <= endIndex) {
-      return true;
-    }
-  }
-  return false;
-}
-
-const tmpRegData = {};
-
-// 匹配中文
-const zhReg = new RegExp(config.zhReg, "g");
-
-function processFile (fileContent) {
-  // 计算出被忽略的包裹信息，默认包括国际化，注释等信息
-  const wrappedItems = parseCodeWrappers(fileContent, allIgnoreWrap)
-
-  const arr = []
-  while ((tmpRegData.matches = zhReg.exec(fileContent))) {
-    let key = tmpRegData.matches[1]
-    key = key.replace(/\\\\/g, '\\') // 解决\\转义后的问题
-    if (testRules(key, config.ignoreKeyRules)) {
-      continue
-    }
-
-    // 如果忽略了包裹了，则不处理
-    const flag = isPositionWrapped(tmpRegData.matches.index, wrappedItems)
-    if (flag) {
-      continue
-    }
-
-    const textIndex = tmpRegData.matches.index
-
-    // 计算文本所在的行和列
-    const { row, col } = calculatePosition(fileContent, textIndex)
-
-    arr.push({
-      label: key,
-      index: textIndex,
-      row: row,
-      col: col,
-    })
-  }
-  return arr
-}
-
-function run () {
-  const result = {}
-  vfs
-  .src(config.i18nFileRules.map(item => path.resolve(absoluteRootDir, item)),{
-      ignore: config.ignoreI18nFileRules.map(item => path.resolve(absoluteRootDir, item)),
-      dot: false
-    }
-  )
-  .pipe(
-    map((file, cb) => {
-      if (file.isDirectory()) {
-        cb()
-        return
+    if (fs.existsSync(configFilePath)) {
+      const conf = await loadConfig(configFilePath);
+      if (conf && conf.options && conf.options.zhExtract) {
+        Object.assign(config, conf.options.zhExtract, program);
       }
-      console.log('开始解析', file.path)
-      const extname = path.extname(file.path)
-      let fileContent = file.contents.toString()
+    }
+  }
+
+  // 制定配置文件后，cwd在配置文件中定义，则cwd就需要重新获取
+  if (!program.cwd) {
+    absoluteCwd = path.resolve(config.cwd);
+  }
+
+  // 输出目录
+  let outPath = path.resolve(absoluteCwd)
+  if(config.outDir) {
+    outPath = path.resolve(outPath, config.outDir)
+  }
+
+  const { customIgnoreWrap, ignoreWrap, ignoreDisableWrap } = config
+
+  const allIgnoreWrap = [...ignoreWrap, ...ignoreDisableWrap, ...customIgnoreWrap]
+
+  const absoluteRootDir = path.resolve(absoluteCwd, config.rootDir);
+
+  const testRules = utils.testRules
+  const calculatePosition = utils.calculatePosition
+
+  // 解析包裹信息
+  function parseCodeWrappers(code, wrappers) {
+    const results = [];
+
+    wrappers.forEach(wrapper => {
+      const { name, start, end, regex } = wrapper;
+      const mReg = new RegExp(regex, 'g');
+      let match;
       
-      const resultArr = processFile(fileContent)
-      if (resultArr.length) {
-        result[file.path] = resultArr
+      while ((match = mReg.exec(code))) {
+        const startIndex = match.index + match[1].length;
+        const endIndex = startIndex + match[2].length;
+        results.push({ name, startIndex, endIndex });
+      }
+    });
+
+    return results;
+  }
+
+  // 是否被包裹
+  function isPositionWrapped(index, wrappedItems) {
+    for (let i = 0; i < wrappedItems.length; i++) {
+      const { startIndex, endIndex } = wrappedItems[i];
+      if (index >= startIndex && index <= endIndex) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  const tmpRegData = {};
+
+  // 匹配中文
+  const zhReg = new RegExp(config.zhReg, "g");
+
+  function processFile (fileContent) {
+    // 计算出被忽略的包裹信息，默认包括国际化，注释等信息
+    const wrappedItems = parseCodeWrappers(fileContent, allIgnoreWrap)
+
+    const arr = []
+    while ((tmpRegData.matches = zhReg.exec(fileContent))) {
+      let key = tmpRegData.matches[1]
+      key = key.replace(/\\\\/g, '\\') // 解决\\转义后的问题
+      if (testRules(key, config.ignoreKeyRules)) {
+        continue
       }
 
-      cb()
-    })
-  )
-  .on("end", async () => {
-    console.log('全部处理完成')
-    const filesPathArr = Object.keys(result)
-    if (filesPathArr.length) {
-      // 处理结果数据
-      console.log('---提取结果---')
-      const outArr = []
-      for (let i = 0; i < filesPathArr.length; i++) {
-        const path = filesPathArr[i]
-        console.log(`文件：${path}`)
-        for (let j = 0; j < result[path].length; j++) {
-          console.log(result[path][j].label)
-          outArr.push({ path, ...result[path][j] })
-        }
+      // 如果忽略了包裹了，则不处理
+      const flag = isPositionWrapped(tmpRegData.matches.index, wrappedItems)
+      if (flag) {
+        continue
       }
-      // 输出结果数据
-      if (config.outCsv) {
-        const csv = new ObjectsToCsv(outArr);
-        await csv.toDisk(path.resolve(outPath, "vve-i18n-extract-output.csv"), { bom: true }); // bom为true 解决中文乱码问题
-      }
-      console.log('---提取完成---')
-    } else {
-      console.log('---提取完成，无可提取的内容---')
+
+      const textIndex = tmpRegData.matches.index
+
+      // 计算文本所在的行和列
+      const { row, col } = calculatePosition(fileContent, textIndex)
+
+      arr.push({
+        label: key,
+        index: textIndex,
+        row: row,
+        col: col,
+      })
     }
-  });
+    return arr
+  }
+
+  function run () {
+    const result = {}
+    vfs
+    .src(config.i18nFileRules.map(item => path.resolve(absoluteRootDir, item)),{
+        ignore: config.ignoreI18nFileRules.map(item => path.resolve(absoluteRootDir, item)),
+        dot: false
+      }
+    )
+    .pipe(
+      map((file, cb) => {
+        if (file.isDirectory()) {
+          cb()
+          return
+        }
+        console.log('开始解析', file.path)
+        const extname = path.extname(file.path)
+        let fileContent = file.contents.toString()
+        
+        const resultArr = processFile(fileContent)
+        if (resultArr.length) {
+          result[file.path] = resultArr
+        }
+
+        cb()
+      })
+    )
+    .on("end", async () => {
+      console.log('全部处理完成')
+      const filesPathArr = Object.keys(result)
+      if (filesPathArr.length) {
+        // 处理结果数据
+        console.log('---提取结果---')
+        const outArr = []
+        for (let i = 0; i < filesPathArr.length; i++) {
+          const path = filesPathArr[i]
+          console.log(`文件：${path}`)
+          for (let j = 0; j < result[path].length; j++) {
+            console.log(result[path][j].label)
+            outArr.push({ path, ...result[path][j] })
+          }
+        }
+        // 输出结果数据
+        if (config.outCsv) {
+          const csv = new ObjectsToCsv(outArr);
+          await csv.toDisk(path.resolve(outPath, "vve-i18n-extract-output.csv"), { bom: true }); // bom为true 解决中文乱码问题
+        }
+        console.log('---提取完成---')
+      } else {
+        console.log('---提取完成，无可提取的内容---')
+      }
+    });
+  }
+
+  run()
 }
 
-run()
+init()

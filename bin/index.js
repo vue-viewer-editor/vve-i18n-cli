@@ -166,214 +166,220 @@ const config = {
   forceCopyIndex: false
 };
 
-Object.assign(config, program);
+async function init () {
+    
+  Object.assign(config, program);
 
-const CONFIG_JS_FILENAME = "vve-i18n-cli.config.js";
+  const CONFIG_JS_FILENAME = "vve-i18n-cli.config.js";
 
-let absoluteCwd = path.resolve(config.cwd);
+  let absoluteCwd = path.resolve(config.cwd);
 
-// 优先判断是否需要读取文件
-if (!config.disableConfigFile) {
-  let configFilePath = path.join(absoluteCwd, CONFIG_JS_FILENAME);
-  if (config.config) {
-    configFilePath = path.resolve(config.config);
-  }
-  if (fs.existsSync(configFilePath)) {
-    const conf = loadConfig(configFilePath);
-    if (conf) {
-      Object.assign(config, conf.options, program);
+  // 优先判断是否需要读取文件
+  if (!config.disableConfigFile) {
+    let configFilePath = path.join(absoluteCwd, CONFIG_JS_FILENAME);
+    if (config.config) {
+      configFilePath = path.resolve(config.config);
+    }
+    if (fs.existsSync(configFilePath)) {
+      const conf = await loadConfig(configFilePath);
+      console.log('conf', JSON.stringify(conf))
+      if (conf) {
+        Object.assign(config, conf.options, program);
+      }
     }
   }
-}
 
-// 制定配置文件后，cwd在配置文件中定义，则cwd就需要重新获取
-if (!program.cwd) {
-  absoluteCwd = path.resolve(config.cwd);
-}
-
-const absoluteRootDir = path.resolve(absoluteCwd, config.rootDir);
-
-const fsExistsSync = utils.fsExistsSync;
-const filterObjByKeyRules = utils.filterObjByKeyRules;
-const testRules = utils.testRules
-const translateArr = trans.translateArr;
-
-const i18nData = {};
-const tmpRegData = {};
-
-// 从文件中提取模块的的国际化KEY
-function getModuleI18nData(modulePath, fileContent) {
-  if (!i18nData[modulePath]) {
-    i18nData[modulePath] = [];
+  // 制定配置文件后，cwd在配置文件中定义，则cwd就需要重新获取
+  if (!program.cwd) {
+    absoluteCwd = path.resolve(config.cwd);
   }
-  for (let i = 0; i < config.i18nTextRules.length; i++) {
-    const regI18n = new RegExp(config.i18nTextRules[i], "g");
-    while ((tmpRegData.matches = regI18n.exec(fileContent))) {
-      let key = tmpRegData.matches[1]
-      key = key.replace(/\\\\/g, '\\') // 解决\\转义后的问题
-      i18nData[modulePath].push(key);
+
+  const absoluteRootDir = path.resolve(absoluteCwd, config.rootDir);
+
+  const fsExistsSync = utils.fsExistsSync;
+  const filterObjByKeyRules = utils.filterObjByKeyRules;
+  const testRules = utils.testRules
+  const translateArr = trans.translateArr;
+
+  const i18nData = {};
+  const tmpRegData = {};
+
+  // 从文件中提取模块的的国际化KEY
+  function getModuleI18nData(modulePath, fileContent) {
+    if (!i18nData[modulePath]) {
+      i18nData[modulePath] = [];
     }
-  }
-}
-
-// 删除重复的key，并排序方便git比对
-function normalizeI18nData() {
-  const moduleKeys = Object.keys(i18nData);
-  moduleKeys.forEach(key => {
-    i18nData[key] = uniq(i18nData[key]).sort();
-  });
-}
-
-// 根据旧数据，生成新数据
-async function makeNewData(key, lang, originData) {
-  const newData = filterObjByKeyRules(originData, config.keepKeyRules); // 根据配置保留一些keys值，保证即使在项目中不被引用也能保存下来
-
-  let newAddDataArr = []; // 新增的数据，即在旧的翻译文件中没有出现
-
-  i18nData[key].forEach(key => {
-    if (testRules(key, config.ignoreKeyRules)) {
-      // 忽略
-    } else if (config.ignoreKeyValueSameKeys[lang] 
-      && config.ignoreKeyValueSameKeys[lang].ignore
-      && !testRules(key, config.ignoreKeyValueSameKeys[lang].keepKeyRules)
-      && (!originData.hasOwnProperty(key) || originData[key] === key)) {
-      // 忽略
-    } else if (originData.hasOwnProperty(key)) {
-      newData[key] = originData[key];
-    } else {
-      newData[key] = key;
-      newAddDataArr.push(key);
-    }
-  });
-
-  // 基础语言不翻译（默认中文），因为由中文翻译成其他语言
-  if (config.translate && lang !== config.translateFromLang) {
-    let translateRst = {};
-
-    // 如果强制翻译，则翻译所有的key
-    if (config.forceTranslate) {
-      newAddDataArr = Object.keys(newData);
-    }
-
-    // 忽略对应的key
-    if (config.translateIgnoreKeyRules && config.translateIgnoreKeyRules.length) {
-      newAddDataArr = newAddDataArr.filter(key => !testRules(key, config.translateIgnoreKeyRules))
-    }
-
-    // key对应的值匹配上规则，需要进行翻译，如果没有规则则翻译全部
-    if (config.translateValueRules && config.translateValueRules.length) {
-      newAddDataArr = newAddDataArr.filter(key => testRules(newData[key], config.translateValueRules))
-    }
-
-    // 配合--translate使用，需要翻译的语言，目前支持en、ko，多个用逗号分割，默认全部
-    if (!config.translateLanguage) {
-      translateRst = await translateArr(
-        config.translateFromLang,
-        lang,
-        newAddDataArr,
-        config.translateUsePinYin, // 是否翻译用拼音替代
-        config.translateBaiduAppid, // Baidu翻译的Appid 
-        config.translateBaiduKey, // Baidu翻译的key
-      );
-    } else if (config.translateLanguage.includes(lang)) {
-      translateRst = await translateArr(
-        config.translateFromLang,
-        lang,
-        newAddDataArr,
-        config.translateUsePinYin, // 是否翻译用拼音替代
-        config.translateBaiduAppid, // Baidu翻译的Appid 
-        config.translateBaiduKey, // Baidu翻译的key
-      );
-    }
-    Object.assign(newData, translateRst);
-  }
-  return newData;
-}
-
-// 保存国际化文件
-async function saveI18nFile({ dirPath } = {}) {
-  const i18nLanguages = config.i18nLanguages;
-
-  for (let i = 0; i < i18nLanguages.length; i++) {
-    const item = i18nLanguages[i];
-    const i18nDir = path.resolve(dirPath, config.outDir);
-    if (!fsExistsSync(i18nDir)) {
-      fs.mkdirSync(i18nDir);
-    }
-
-    // 模块下i18n/index.js文件不存在才拷贝index.js，或者forceCopyIndex=true强制拷贝
-    const i18nIndexFile = path.resolve(i18nDir, "index.js");
-    if (
-      (config.copyIndex && !fsExistsSync(i18nIndexFile)) ||
-      config.forceCopyIndex
-    ) {
-      fs.writeFileSync(i18nIndexFile, require("./res/index.js")(i18nLanguages));
-    }
-
-    // 没有对应语言的国际化文件，就创建一个
-    const langFilePath = path.resolve(i18nDir, item + ".json");
-    if (!fsExistsSync(langFilePath)) {
-      jsonfile.writeFileSync(langFilePath, {}, { spaces: 2, EOL: "\n" });
-    }
-
-    // 读取原有的国际化文件信息，重新与新收集的国际化信息合并
-    const originData = jsonfile.readFileSync(langFilePath) || {};
-    const newData = await makeNewData(dirPath, item, originData);
-
-    // 写文件
-    try {
-      jsonfile.writeFileSync(langFilePath, newData, { spaces: 2, EOL: "\n" });
-      console.log("提取完成" + langFilePath);
-    } catch (err) {
-      console.log("提取失败" + langFilePath + "\n" + err);
+    for (let i = 0; i < config.i18nTextRules.length; i++) {
+      const regI18n = new RegExp(config.i18nTextRules[i], "g");
+      while ((tmpRegData.matches = regI18n.exec(fileContent))) {
+        let key = tmpRegData.matches[1]
+        key = key.replace(/\\\\/g, '\\') // 解决\\转义后的问题
+        i18nData[modulePath].push(key);
+      }
     }
   }
-}
 
-// 保存模块的I18n文件
-function saveModuleI18nFile() {
-  const moduleKeys = Object.keys(i18nData);
-  moduleKeys.forEach(key => {
-    saveI18nFile({ dirPath: key });
-  });
-}
-vfs
-  .src(
-    config.moduleIndexRules.map(item => path.resolve(absoluteRootDir, item)),
-    {
-      ignore: config.ignoreModuleIndexRules.map(item => path.resolve(absoluteRootDir, item)),
-      dot: false
+  // 删除重复的key，并排序方便git比对
+  function normalizeI18nData() {
+    const moduleKeys = Object.keys(i18nData);
+    moduleKeys.forEach(key => {
+      i18nData[key] = uniq(i18nData[key]).sort();
+    });
+  }
+
+  // 根据旧数据，生成新数据
+  async function makeNewData(key, lang, originData) {
+    const newData = filterObjByKeyRules(originData, config.keepKeyRules); // 根据配置保留一些keys值，保证即使在项目中不被引用也能保存下来
+
+    let newAddDataArr = []; // 新增的数据，即在旧的翻译文件中没有出现
+
+    i18nData[key].forEach(key => {
+      if (testRules(key, config.ignoreKeyRules)) {
+        // 忽略
+      } else if (config.ignoreKeyValueSameKeys[lang] 
+        && config.ignoreKeyValueSameKeys[lang].ignore
+        && !testRules(key, config.ignoreKeyValueSameKeys[lang].keepKeyRules)
+        && (!originData.hasOwnProperty(key) || originData[key] === key)) {
+        // 忽略
+      } else if (originData.hasOwnProperty(key)) {
+        newData[key] = originData[key];
+      } else {
+        newData[key] = key;
+        newAddDataArr.push(key);
+      }
+    });
+
+    // 基础语言不翻译（默认中文），因为由中文翻译成其他语言
+    if (config.translate && lang !== config.translateFromLang) {
+      let translateRst = {};
+
+      // 如果强制翻译，则翻译所有的key
+      if (config.forceTranslate) {
+        newAddDataArr = Object.keys(newData);
+      }
+
+      // 忽略对应的key
+      if (config.translateIgnoreKeyRules && config.translateIgnoreKeyRules.length) {
+        newAddDataArr = newAddDataArr.filter(key => !testRules(key, config.translateIgnoreKeyRules))
+      }
+
+      // key对应的值匹配上规则，需要进行翻译，如果没有规则则翻译全部
+      if (config.translateValueRules && config.translateValueRules.length) {
+        newAddDataArr = newAddDataArr.filter(key => testRules(newData[key], config.translateValueRules))
+      }
+
+      // 配合--translate使用，需要翻译的语言，目前支持en、ko，多个用逗号分割，默认全部
+      if (!config.translateLanguage) {
+        translateRst = await translateArr(
+          config.translateFromLang,
+          lang,
+          newAddDataArr,
+          config.translateUsePinYin, // 是否翻译用拼音替代
+          config.translateBaiduAppid, // Baidu翻译的Appid 
+          config.translateBaiduKey, // Baidu翻译的key
+        );
+      } else if (config.translateLanguage.includes(lang)) {
+        translateRst = await translateArr(
+          config.translateFromLang,
+          lang,
+          newAddDataArr,
+          config.translateUsePinYin, // 是否翻译用拼音替代
+          config.translateBaiduAppid, // Baidu翻译的Appid 
+          config.translateBaiduKey, // Baidu翻译的key
+        );
+      }
+      Object.assign(newData, translateRst);
     }
-  )
-  .pipe(
-    map((file, cb) => {
+    return newData;
+  }
 
-      // 如果是文件夹当前就是模块模块入口，如果不是取的所在的文件夹作为文件夹入口
-      const modulePath = fs.lstatSync(file.path).isDirectory() ? file.path : path.dirname(file.path);
+  // 保存国际化文件
+  async function saveI18nFile({ dirPath } = {}) {
+    const i18nLanguages = config.i18nLanguages;
 
-      vfs
-        .src(config.i18nFileRules.map(item => path.resolve(modulePath, item)), {
-          ignore: [
-            ...config.ignoreI18nFileRules.map(item => path.resolve(modulePath, item)),
-            ...config.ignoreI18nFileRulesBaseRootDir.map(item => path.resolve(absoluteRootDir, item))
-          ],
-          dot: false
-        })
-        .pipe(
-          map((file, cb) => {
-            if (!file.isDirectory()) {
-              const contents = file.contents.toString();
-              getModuleI18nData(modulePath, contents);
-            }
-            cb(null);
+    for (let i = 0; i < i18nLanguages.length; i++) {
+      const item = i18nLanguages[i];
+      const i18nDir = path.resolve(dirPath, config.outDir);
+      if (!fsExistsSync(i18nDir)) {
+        fs.mkdirSync(i18nDir);
+      }
+
+      // 模块下i18n/index.js文件不存在才拷贝index.js，或者forceCopyIndex=true强制拷贝
+      const i18nIndexFile = path.resolve(i18nDir, "index.js");
+      if (
+        (config.copyIndex && !fsExistsSync(i18nIndexFile)) ||
+        config.forceCopyIndex
+      ) {
+        fs.writeFileSync(i18nIndexFile, require("./res/index.js")(i18nLanguages));
+      }
+
+      // 没有对应语言的国际化文件，就创建一个
+      const langFilePath = path.resolve(i18nDir, item + ".json");
+      if (!fsExistsSync(langFilePath)) {
+        jsonfile.writeFileSync(langFilePath, {}, { spaces: 2, EOL: "\n" });
+      }
+
+      // 读取原有的国际化文件信息，重新与新收集的国际化信息合并
+      const originData = jsonfile.readFileSync(langFilePath) || {};
+      const newData = await makeNewData(dirPath, item, originData);
+
+      // 写文件
+      try {
+        jsonfile.writeFileSync(langFilePath, newData, { spaces: 2, EOL: "\n" });
+        console.log("提取完成" + langFilePath);
+      } catch (err) {
+        console.log("提取失败" + langFilePath + "\n" + err);
+      }
+    }
+  }
+
+  // 保存模块的I18n文件
+  function saveModuleI18nFile() {
+    const moduleKeys = Object.keys(i18nData);
+    moduleKeys.forEach(key => {
+      saveI18nFile({ dirPath: key });
+    });
+  }
+  vfs
+    .src(
+      config.moduleIndexRules.map(item => path.resolve(absoluteRootDir, item)),
+      {
+        ignore: config.ignoreModuleIndexRules.map(item => path.resolve(absoluteRootDir, item)),
+        dot: false
+      }
+    )
+    .pipe(
+      map((file, cb) => {
+
+        // 如果是文件夹当前就是模块模块入口，如果不是取的所在的文件夹作为文件夹入口
+        const modulePath = fs.lstatSync(file.path).isDirectory() ? file.path : path.dirname(file.path);
+
+        vfs
+          .src(config.i18nFileRules.map(item => path.resolve(modulePath, item)), {
+            ignore: [
+              ...config.ignoreI18nFileRules.map(item => path.resolve(modulePath, item)),
+              ...config.ignoreI18nFileRulesBaseRootDir.map(item => path.resolve(absoluteRootDir, item))
+            ],
+            dot: false
           })
-        )
-        .on("end", () => {
-          cb(null);
-        });
-    })
-  )
-  .on("end", () => {
-    normalizeI18nData();
-    saveModuleI18nFile();
-  });
+          .pipe(
+            map((file, cb) => {
+              if (!file.isDirectory()) {
+                const contents = file.contents.toString();
+                getModuleI18nData(modulePath, contents);
+              }
+              cb(null);
+            })
+          )
+          .on("end", () => {
+            cb(null);
+          });
+      })
+    )
+    .on("end", () => {
+      normalizeI18nData();
+      saveModuleI18nFile();
+    });
+}
+
+init()

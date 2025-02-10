@@ -1,11 +1,14 @@
 const buildDebug = require("debug");
 const path = require("path");
+const url = require("url");
+
+const pathToFileURL = url.pathToFileURL
 
 const debug = buildDebug("files:configuration");
 
-function loadConfig(filepath) {
+async function loadConfig(filepath) {
   try {
-    const conf = readConfig(filepath);
+    const conf = await readConfig(filepath);
     return conf;
   } catch (e) {
     debug("error", e);
@@ -13,15 +16,21 @@ function loadConfig(filepath) {
   }
 }
 
-function readConfig(filepath) {
+async function readConfig(filepath) {
   let options;
   try {
-    const configModule = require(filepath);
+    let configModule
+    try {
+      configModule = require(filepath);
+    } catch (e) {
+      configModule = await import(pathToFileURL(filepath).href);
+    }
     options =
       configModule && configModule.__esModule
         ? configModule.default || undefined
         : configModule;
   } catch (err) {
+    console.log('readConfig', err)
     throw err;
   } finally {
   }

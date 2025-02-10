@@ -116,7 +116,7 @@ async function init () {
       configFilePath = path.resolve(config.config);
     }
     if (fs.existsSync(configFilePath)) {
-      const conf = loadConfig(configFilePath);
+      const conf = await loadConfig(configFilePath);
       if (conf && conf.options && conf.options.zhWrap) {
         Object.assign(config, conf.options.zhWrap, program);
       }

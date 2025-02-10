@@ -93,7 +93,7 @@ async function init () {
       configFilePath = path.resolve(config.config);
     }
     if (fs.existsSync(configFilePath)) {
-      const conf = loadConfig(configFilePath);
+      const conf = await loadConfig(configFilePath);
       if (conf && conf.options && conf.options.zhCheck) {
         Object.assign(config, conf.options.zhCheck, program);
       }

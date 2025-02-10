@@ -182,7 +182,6 @@ async function init () {
     }
     if (fs.existsSync(configFilePath)) {
       const conf = await loadConfig(configFilePath);
-      console.log('conf', JSON.stringify(conf))
       if (conf) {
         Object.assign(config, conf.options, program);
       }

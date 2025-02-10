@@ -123,6 +123,14 @@ module.exports = {
 }
 ```
 
+或
+
+```javascript
+export default {
+  outDir: 'lang'
+}
+```
+
 ### 默认值
 
 ```javascript

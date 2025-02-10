@@ -609,6 +609,21 @@ async function init () {
           if (resultArr.length) {
             result[file.path] = resultArr
           }
+        } else if (extname.toLowerCase() === '.jsx') {
+          const resultArr = processJsFile(fileContent)
+          if (resultArr.length) {
+            result[file.path] = resultArr
+          }
+        } else if (extname.toLowerCase() === '.ts') {
+          const resultArr = processJsFile(fileContent)
+          if (resultArr.length) {
+            result[file.path] = resultArr
+          }
+        } else if (extname.toLowerCase() === '.tsx') {
+          const resultArr = processJsFile(fileContent)
+          if (resultArr.length) {
+            result[file.path] = resultArr
+          }
         }
         cb()
       })

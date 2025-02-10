@@ -836,6 +836,12 @@ async function init () {
           newFileContent = processVueFile(fileContent)
         } else if (extname.toLowerCase() === '.js') {
           newFileContent = processJsFile(fileContent)
+        } else if (extname.toLowerCase() === '.jsx') {
+          newFileContent = processJsFile(fileContent)
+        } else if (extname.toLowerCase() === '.ts') {
+          newFileContent = processJsFile(fileContent)
+        } else if (extname.toLowerCase() === '.tsx') {
+          newFileContent = processJsFile(fileContent)
         } else if (extname.toLowerCase() === '.html' || extname.toLowerCase() === '.htm') {
           newFileContent = processHtmlFile(fileContent)
         }

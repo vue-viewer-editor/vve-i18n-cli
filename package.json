@@ -1,6 +1,6 @@
 {
   "name": "vve-i18n-cli",
-  "version": "7.2.2",
+  "version": "7.2.3",
   "description": "generate an internationalized text resource file",
   "bin": {
     "vve-i18n-cli": "./bin/index.js",
@@ -47,9 +47,9 @@
   },
   "devDependencies": {
     "chai": "^4.2.0",
-    "mocha": "^6.2.1",
-    "nyc": "^14.1.1",
-    "shelljs": "^0.8.3",
-    "standard-version": "^7.0.0"
+    "mocha": "^11.1.0",
+    "nyc": "^17.1.0",
+    "shelljs": "^0.8.5",
+    "standard-version": "^9.5.0"
   }
 }

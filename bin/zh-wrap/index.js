@@ -55,6 +55,7 @@ program
   .option("--i18n-import-for-js <item>", "js相关文件需要引入的国际化文件")
   .option("--js-i18n-func-name <item>", "js相关文件需要使用国际化方法")
   .option("--vue-i18n-func-name <item>", "vue相关文件需要使用的国际化方法")
+  .option("--vue-i18n-func-name-prefix <item>", "vue相关文件需要使用的国际化方法前缀")
   .parse(process.argv);
 
 const config = {
@@ -99,6 +100,8 @@ const config = {
   jsI18nFuncName: 'i18n.t',
   // vue相关文件需要使用的国际化方法
   vueI18nFuncName: '$t',
+  // vue相关文件需要使用的国际化方法前缀
+  vueI18nFuncNamePrefix: 'this.',
 };
 
 async function init () {
@@ -128,7 +131,7 @@ async function init () {
     absoluteCwd = path.resolve(config.cwd);
   }
 
-  const { ignorePreReg, i18nImportForJs, jsI18nFuncName, vueI18nFuncName, ignoreText, ignoreAttr } = config
+  const { ignorePreReg, i18nImportForJs, jsI18nFuncName, vueI18nFuncName, vueI18nFuncNamePrefix, ignoreText, ignoreAttr } = config
 
   const absoluteRootDir = path.resolve(absoluteCwd, config.rootDir);
 
@@ -391,7 +394,7 @@ async function init () {
         }
         if (match.indexOf('/*') !== -1) return match
         // vueI18nFuncName = '$t' => `this.$t(${match})`
-        return `this.${vueI18nFuncName}(${match})`
+        return `${vueI18nFuncNamePrefix}${vueI18nFuncName}(${match})`
       })
 
       if (scriptKey === newScriptKey) {
@@ -497,9 +500,9 @@ async function init () {
         if (variables.length) {
           // "My name is ${name} and I am ${age} years old.";
           // 转换后的结果 this.$t("My name is {0} and I am {1} years old.", [name, age])
-          return `this.${vueI18nFuncName}(${dot}${convertedString}${dot}, [${variables.join(', ')}])`
+          return `${vueI18nFuncNamePrefix}${vueI18nFuncName}(${dot}${convertedString}${dot}, [${variables.join(', ')}])`
         } else {
-          return `this.${vueI18nFuncName}(${dot}${convertedString}${dot})`
+          return `${vueI18nFuncNamePrefix}${vueI18nFuncName}(${dot}${convertedString}${dot})`
         }
       })
 

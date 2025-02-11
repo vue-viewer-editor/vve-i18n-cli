@@ -131,6 +131,7 @@ program
   .option("--i18n-import-for-js <item>", "js相关文件需要引入的国际化文件")
   .option("--js-i18n-func-name <item>", "js相关文件需要使用国际化方法")
   .option("--vue-i18n-func-name <item>", "vue相关文件需要使用的国际化方法")
+  .option("--vue-i18n-func-name-prefix <item>", "vue相关文件需要使用的国际化方法前缀")
   .parse(process.argv);
 ```
 
@@ -193,6 +194,8 @@ const config = {
   jsI18nFuncName: 'i18n.t',
   // vue相关文件需要使用的国际化方法
   vueI18nFuncName: '$t',
+  // vue相关文件需要使用的国际化方法前缀
+  vueI18nFuncNamePrefix: 'this.',
 };
 ```
 

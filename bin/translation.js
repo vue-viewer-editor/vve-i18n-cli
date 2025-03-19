@@ -68,7 +68,7 @@ async function translateArr(
   const result = [];
   for (let i = 0; i < wordArr.length; i++) {
     const word = wordArr[i];
-    const p = translate(fromLang, lang, word, translateUsePinYin, translateBaiduAppid, translateBaiduKey)
+    await translate(fromLang, lang, word, translateUsePinYin, translateBaiduAppid, translateBaiduKey)
       .then(res => {
         console.log(word, "\t" + res);
         result[word] = res;
@@ -76,7 +76,6 @@ async function translateArr(
       .catch(err => {
         console.log(err);
       });
-    await p;
   }
   return result;
 }

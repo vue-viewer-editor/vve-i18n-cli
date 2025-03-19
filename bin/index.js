@@ -333,11 +333,11 @@ async function init () {
   }
 
   // 保存模块的I18n文件
-  function saveModuleI18nFile() {
+  async function saveModuleI18nFile() {
     const moduleKeys = Object.keys(i18nData);
-    moduleKeys.forEach(key => {
-      saveI18nFile({ dirPath: key });
-    });
+    for (const key of moduleKeys) {
+      await saveI18nFile({ dirPath: key });
+    }
   }
   vfs
     .src(

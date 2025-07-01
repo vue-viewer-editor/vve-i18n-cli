@@ -60,7 +60,7 @@ module.exports = {
   transRestore: {
     languages: {
       'en': {
-        translationFiles: ['translate.json'],
+        translationFiles: ['translate.xlsx'],
         i18nJsonRules: ["**/*/en.json"],
       }
     },

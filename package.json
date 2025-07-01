@@ -6,10 +6,12 @@
     "vve-i18n-cli": "./bin/index.js",
     "vve-i18n-zh-wrap-cli": "./bin/zh-wrap/index.js",
     "vve-i18n-zh-check-cli": "./bin/zh-check/index.js",
-    "vve-i18n-zh-extract-cli": "./bin/zh-extract/index.js"
+    "vve-i18n-zh-extract-cli": "./bin/zh-extract/index.js",
+    "vve-i18n-trans-restore-cli": "./bin/trans-restore/index.js"
   },
   "files": [
     "bin",
+    "README-trans-restore.md",
     "README-zh-extract.md",
     "README-zh-check.md",
     "README-zh-wrap.md",

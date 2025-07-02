@@ -64,3 +64,5 @@ typings/
 test/example/src/lang
 
 vve-i18n-extract-output.csv
+
+temp/

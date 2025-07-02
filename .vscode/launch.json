@@ -53,6 +53,16 @@
       ],
       "program": "${workspaceFolder}/bin/trans-restore/index.js",
       "args": ["--cwd", "./test/example-trans-restore"],
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "vve-i18n-zh-find-untrans",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/bin/zh-find-untrans/index.js",
+      "args": ["--cwd", "./test/example-find-untrans"],
     }
   ]
 }

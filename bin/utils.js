@@ -96,3 +96,89 @@ function calculatePosition(text, index) {
 }
 
 exports.calculatePosition = calculatePosition;
+
+// 实现一个深度拷贝的功能
+function deepCopy(obj) {
+  if (obj === null || typeof obj !== 'object') {
+    return obj;
+  }
+
+  let copy;
+  if (obj instanceof Array) {
+    copy = [];
+    for (let i = 0; i < obj.length; i++) {
+      copy[i] = deepCopy(obj[i]);
+    }
+    return copy;
+  } else if (obj instanceof Date) {
+    return new Date(obj.getTime());
+  } else if (obj instanceof RegExp) {
+    return new RegExp(obj.source, obj.flags);
+  } else {
+    copy = {};
+    for (let key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        copy[key] = deepCopy(obj[key]);
+      }
+    }
+    return copy;
+  }
+}
+
+exports.deepCopy = deepCopy;
+
+// 实现一个深度合并的功能
+function deepMerge(...objects) {
+  // 使用 WeakMap 跟踪已合并对象，解决循环引用
+  const mergedObjects = new WeakMap();
+
+  function merge(target, source) {
+    // 基础类型直接返回源值
+    if (source === null || typeof source !== 'object') {
+      return source;
+    }
+
+    // 处理循环引用
+    if (mergedObjects.has(source)) {
+      return mergedObjects.get(source);
+    }
+
+    // 处理数组
+    if (Array.isArray(source)) {
+      const newArray = Array.isArray(target) ? [...target] : [];
+      source.forEach((item, index) => {
+        newArray[index] = merge(newArray[index], item);
+      });
+      mergedObjects.set(source, newArray);
+      return newArray;
+    }
+
+    // 处理日期
+    if (source instanceof Date) {
+      return new Date(source);
+    }
+
+    // 处理正则
+    if (source instanceof RegExp) {
+      return new RegExp(source.source, source.flags);
+    }
+
+    // 创建新对象，避免原型污染
+    const newObj = target && typeof target === 'object' && !Array.isArray(target) ? { ...target } : {};
+    mergedObjects.set(source, newObj);
+
+    // 遍历源对象键（过滤原型属性）
+    Object.keys(source).forEach(key => {
+      // 跳过原型属性
+      if (key === '__proto__') return;
+      newObj[key] = merge(newObj[key], source[key]);
+    });
+
+    return newObj;
+  }
+
+  // 处理初始值为非对象的情况
+  return objects.reduce((acc, obj) => merge(acc, obj), objects[0] ?? {});
+}
+
+exports.deepMerge = deepMerge;

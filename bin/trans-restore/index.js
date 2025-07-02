@@ -58,6 +58,24 @@ const defaultExcelConfig = {
   excelSheetIndex: 0, // excel sheet索引
 }
 
+const defaultLanguages = {
+  // Default English configuration
+  'en': {
+    translationFiles: ['translate.xlsx'],
+    i18nJsonRules: ["**/*/en.json"],
+    // ignoreI18nJsonRules: [], // 与全局的ignoreI18nJsonRules合并
+    // ignoreKeys: [], // 与全局的ignoreKeys合并
+    // ignoreValues: [], // 与全局的ignoreValues合并
+    // excelConfig: {
+    //   excelStartRow: 0, // excel起始行，开始处理，覆盖全局的设置
+    //   excelKeyCol: 0, // excel key 所在列，覆盖全局的设置
+    //   excelValueCol: 1, // excel value 所在列，覆盖全局的设置
+    //   excelSheetIndex: 0, // excel sheet索引，覆盖全局的设置
+    // }
+  }
+  // Other languages can be added here or via config file
+}
+
 const config = {
   cwd: ".",
   rootDir: "src",
@@ -67,23 +85,7 @@ const config = {
   ignoreKeys: [], // 遇到某些key就忽略，不合并
   ignoreValues: [], // 遇到某些value就忽略，不合并
   excelConfig: defaultExcelConfig,
-  languages: {
-    // Default English configuration
-    'en': {
-      translationFiles: ['translate.xlsx'],
-      i18nJsonRules: ["**/*/en.json"],
-      // ignoreI18nJsonRules: [], // 与全局的ignoreI18nJsonRules合并
-      // ignoreKeys: [], // 与全局的ignoreKeys合并
-      // ignoreValues: [], // 与全局的ignoreValues合并
-      // excelConfig: {
-      //   excelStartRow: 0, // excel起始行，开始处理，覆盖全局的设置
-      //   excelKeyCol: 0, // excel key 所在列，覆盖全局的设置
-      //   excelValueCol: 1, // excel value 所在列，覆盖全局的设置
-      //   excelSheetIndex: 0, // excel sheet索引，覆盖全局的设置
-      // }
-    }
-    // Other languages can be added here or via config file
-  },
+  languages: defaultLanguages,
   enableLanguages: true, // 为true表示全局启用，为false表示不启用，还可以为数组，表示启用部分
 };
 
@@ -120,6 +122,8 @@ function customSheetToJson(filePath, options = {}) {
 
 async function init() {
   Object.assign(config, program);
+  config.excelConfig = { ...defaultExcelConfig, ...config.excelConfig }
+  config.languages = utils.deepMerge(utils.deepCopy(defaultLanguages), config.languages || {})
   
   const CONFIG_JS_FILENAME = "vve-i18n-cli.config.js";
 
@@ -133,8 +137,11 @@ async function init() {
     }
     if (fs.existsSync(configFilePath)) {
       const conf = await loadConfig(configFilePath);
-      if (conf && conf.options && conf.options.transRestore) {
-        Object.assign(config, conf.options.transRestore, program);
+      const myConfig = conf && conf.options && conf.options.transRestore
+      if (myConfig) {
+        Object.assign(config, myConfig, program);
+        config.excelConfig = utils.deepMerge(utils.deepCopy(defaultExcelConfig), utils.deepCopy(myConfig.excelConfig || {}), program.excelConfig || {})
+        config.languages = utils.deepMerge(utils.deepCopy(defaultLanguages), utils.deepCopy(myConfig.languages || {}), program.languages || {})
       }
     }
   }
@@ -143,8 +150,6 @@ async function init() {
   if (!program.cwd) {
     absoluteCwd = path.resolve(config.cwd);
   }
-
-  config.excelConfig = { ...defaultExcelConfig, ...config.excelConfig }
 
   const absoluteRootDir = path.resolve(config.cwd, config.rootDir);
 

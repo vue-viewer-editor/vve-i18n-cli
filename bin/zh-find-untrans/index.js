@@ -89,6 +89,8 @@ const config = {
 
 async function init() {
   Object.assign(config, program);
+  config.excelConfig = { ...defaultExcelConfig, ...config.excelConfig }
+  config.languages = utils.deepMerge(utils.deepCopy(defaultLanguages), config.languages || {})
   
   const CONFIG_JS_FILENAME = "vve-i18n-cli.config.js";
   let absoluteCwd = path.resolve(config.cwd);
@@ -100,8 +102,11 @@ async function init() {
     }
     if (fs.existsSync(configFilePath)) {
       const conf = await loadConfig(configFilePath);
-      if (conf && conf.options && conf.options.zhFindUntrans) {
-        Object.assign(config, conf.options.zhFindUntrans, program);
+      const myConfig = conf && conf.options && conf.options.zhFindUntrans
+      if (myConfig) {
+        Object.assign(config, myConfig, program);
+        config.excelConfig = utils.deepMerge(utils.deepCopy(defaultExcelConfig), utils.deepCopy(myConfig.excelConfig || {}), program.excelConfig || {})
+        config.languages = utils.deepMerge(utils.deepCopy(defaultLanguages), utils.deepCopy(myConfig.languages || {}), program.languages || {})
       }
     }
   }
@@ -110,9 +115,6 @@ async function init() {
   if (!program.cwd) {
     absoluteCwd = path.resolve(config.cwd);
   }
-
-  config.excelConfig = { ...defaultExcelConfig, ...config.excelConfig }
-  config.languages = utils.deepMerge(utils.deepCopy(defaultLanguages), config.languages)
 
   const absoluteRootDir = path.resolve(config.cwd, config.rootDir);
   

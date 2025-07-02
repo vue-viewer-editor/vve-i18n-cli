@@ -82,6 +82,24 @@ const defaultExcelConfig = {
   excelSheetIndex: 0, // excel sheet索引
 }
 
+const defaultLanguages = {
+  // Default English configuration
+  'en': {
+    translationFiles: ['translate.xlsx'],
+    i18nJsonRules: ["**/*/en.json"],
+    // ignoreI18nJsonRules: [], // 与全局的ignoreI18nJsonRules合并
+    // ignoreKeys: [], // 与全局的ignoreKeys合并
+    // ignoreValues: [], // 与全局的ignoreValues合并
+    // excelConfig: {
+    //   excelStartRow: 0, // excel起始行，开始处理，覆盖全局的设置
+    //   excelKeyCol: 0, // excel key 所在列，覆盖全局的设置
+    //   excelValueCol: 1, // excel value 所在列，覆盖全局的设置
+    //   excelSheetIndex: 0, // excel sheet索引，覆盖全局的设置
+    // }
+  }
+  // Other languages can be added here or via config file
+}
+
 const config = {
   cwd: ".",
   rootDir: "src",
@@ -91,23 +109,7 @@ const config = {
   ignoreKeys: [], // 遇到某些key就忽略，不合并
   ignoreValues: [], // 遇到某些value就忽略，不合并
   excelConfig: defaultExcelConfig,
-  languages: {
-    // Default English configuration
-    'en': {
-      translationFiles: ['translate.xlsx'],
-      i18nJsonRules: ["**/*/en.json"],
-      // ignoreI18nJsonRules: [], // 与全局的ignoreI18nJsonRules合并
-      // ignoreKeys: [], // 与全局的ignoreKeys合并
-      // ignoreValues: [], // 与全局的ignoreValues合并
-      // excelConfig: {
-      //   excelStartRow: 0, // excel起始行，开始处理，覆盖全局的设置
-      //   excelKeyCol: 0, // excel key 所在列，覆盖全局的设置
-      //   excelValueCol: 1, // excel value 所在列，覆盖全局的设置
-      //   excelSheetIndex: 0, // excel sheet索引，覆盖全局的设置
-      // }
-    }
-    // Other languages can be added here or via config file
-  },
+  languages: defaultLanguages,
   enableLanguages: true, // 为true表示全局启用，为false表示不启用，还可以为数组，表示启用部分
 };
 ```

@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [9.2.1](https://github.com/vue-viewer-editor/vve-i18n-cli/compare/v9.1.1...v9.2.1) (2025-07-03)
+
 ### [9.1.1](https://github.com/vue-viewer-editor/vve-i18n-cli/compare/v9.0.2...v9.1.1) (2025-07-02)
 
 ### [9.0.2](https://github.com/vue-viewer-editor/vve-i18n-cli/compare/v9.0.1...v9.0.2) (2025-07-02)

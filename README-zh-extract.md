@@ -100,6 +100,10 @@ program
     "--config <path>",
     "配置文件的路径，没有配置，默认路径是在${cwd}/vve-i18n-cli.config.js"
   )
+  .option(
+    "--config-key-name <item>",
+    "config配置文件中对应的入口配置key的名称"
+  )
   .option("--disable-config-file", "是否取配置文件")
   .option(
     "--i18n-file-rules <items>",
@@ -137,6 +141,12 @@ program
   )
   .option("--out-dir <path>", "输出目录")
   .option("--out-csv", "是否输出csv")
+  .option("--simple-json-out", "是否输出简单的json文件")
+  .option("--simple-json-out-file <item>", "输出的简单的json文件，把所有的key合并起来，与simpleJsonReferenceFile的内容进行合并")
+  .option("--simple-json-reference-file <item>", "参考的简单的json文件")
+  .option("--simple-json-use-key-for-default", "用键来设置默认值")
+  .option("--simple-json-remove-unused-keys", "是否删除不在扫描文件中出现的key")
+  
   .parse(process.argv);
 ```
 
@@ -195,6 +205,16 @@ const config = {
   outDir: '',
   // 是否输出csv文件
   outCsv: false,
+  // 是否输出简单的json文件
+  simpleJsonOut: false,
+  // 输出的简单的json文件，把所有的key合并起来，与simpleJsonReferenceFile的内容进行合并
+  simpleJsonOutFile: 'simple.json',
+  // 参考的简单的json文件
+  simpleJsonReferenceFile: '',
+  // 用键来设置默认值
+  simpleJsonUseKeyForDefault: false,
+  // 是否删除不在newData中出现的key
+  simpleJsonRemoveUnusedKeys: false,
 };
 ```
 

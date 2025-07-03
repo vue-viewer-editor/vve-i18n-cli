@@ -1,4 +1,3 @@
-const { google, baidu, youdao } = require("translation.js");
 const pinyin = require('./pinyin.js')
 const baiduTranslateService = require("vve-baidu-translate-service").default;
 
@@ -13,13 +12,20 @@ function translate(
   word,
   translateUsePinYin,
   translateBaiduAppid,
-  translateBaiduKey
+  translateBaiduKey,
+  translateExtraSource = {}
 ) {
   const from = fromLang === "zh" ? "zh-CN" : fromLang;
 
   if (translateUsePinYin && from === 'zh-CN') {
     return new Promise(resolve => {
       resolve(pinyin.convert_cc2py_composite(word)[0] || word)
+    })
+  }
+
+  if (translateExtraSource.hasOwnProperty(word)) {
+    return new Promise(resolve => {
+      resolve(translateExtraSource[word])
     })
   }
 
@@ -38,16 +44,7 @@ function translate(
     })
   }
 
-  // 默认使用Baidu
-  return baidu
-    .translate({
-      text: word,
-      from,
-      to: lang
-    })
-    .then(result => {
-      return result.result[0] || "";
-    });
+  return Promise.reject(new Error('未配置Baidu翻译appid和key'))
 }
 
 exports.translate = translate;
@@ -63,12 +60,13 @@ async function translateArr(
   wordArr,
   translateUsePinYin,
   translateBaiduAppid,
-  translateBaiduKey
+  translateBaiduKey,
+  translateExtraSource = {}
 ) {
   const result = [];
   for (let i = 0; i < wordArr.length; i++) {
     const word = wordArr[i];
-    await translate(fromLang, lang, word, translateUsePinYin, translateBaiduAppid, translateBaiduKey)
+    await translate(fromLang, lang, word, translateUsePinYin, translateBaiduAppid, translateBaiduKey, translateExtraSource)
       .then(res => {
         console.log(word, "\t" + res);
         result[word] = res;

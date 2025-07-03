@@ -99,6 +99,10 @@ program
   .option("--translate-baidu-appid <item>", "Baidu翻译appId")
   .option("--translate-baidu-key <item>", "Baidu翻译key")
   .option(
+    "--translate-use-extra-source",
+    "使用额外的翻译源"
+  )
+  .option(
     "--translate-value-rules <items>",
     "需要翻译的Value的规则，只有value满足此条件才会翻译，如果配置空数组，则表示全部都需要翻译",
     commaSeparatedList
@@ -146,7 +150,7 @@ const config = {
   ignoreModuleIndexRules: [],
   // 匹配含有国际化文本的文件规则
   i18nFileRules: ["**/*.+(vue|js)"],
-  // 不匹配含有国际化文本的文件规则
+  // 不匹配含有国际化文本的文件规则，基于模块的路径
   ignoreI18nFileRules: [],
   // 不匹配含有国际化文本的文件规则，基于rootDir
   ignoreI18nFileRulesBaseRootDir: [],
@@ -190,6 +194,10 @@ const config = {
   translateBaiduAppid: '',
   // Baidu翻译key
   translateBaiduKey: '',
+  // 额外的翻译源 key en
+  translateExtraSource: {}, // { en: [{ type: 'file', path: '' }, { type: 'json', data: {} }] },
+  // 使用额外的翻译源
+  translateUseExtraSource: false,
   // 需要翻译的Value的规则，只有value满足此条件才会翻译，如果配置空数组，则表示全部都需要翻译
   translateValueRules: [
     /[^\x00-\xff]+/ // 中文

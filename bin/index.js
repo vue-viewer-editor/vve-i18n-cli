@@ -85,6 +85,10 @@ program
   .option("--translate-baidu-appid <item>", "Baidu翻译appId")
   .option("--translate-baidu-key <item>", "Baidu翻译key")
   .option(
+    "--translate-use-extra-source",
+    "使用额外的翻译源"
+  )
+  .option(
     "--translate-value-rules <items>",
     "需要翻译的Value的规则，只有value满足此条件才会翻译，如果配置空数组，则表示全部都需要翻译",
     commaSeparatedList
@@ -154,6 +158,10 @@ const config = {
   translateBaiduAppid: '',
   // Baidu翻译key
   translateBaiduKey: '',
+  // 额外的翻译源 key en
+  translateExtraSource: {}, // { en: [{ type: 'file', path: '' }, { type: 'json', data: {} }] },
+  // 使用额外的翻译源
+  translateUseExtraSource: false,
   // 需要翻译的Value的规则，只有value满足此条件才会翻译，如果配置空数组，则表示全部都需要翻译
   translateValueRules: [
     /[^\x00-\xff]+/ // 中文
@@ -202,6 +210,56 @@ async function init () {
 
   const i18nData = {};
   const tmpRegData = {};
+
+  const translateExtraSourceResult = {};
+  // 获取翻译额外的数据源
+  function getTranslateExtraSource(lang) {
+    if (!config.translateUseExtraSource) return {};
+    if (translateExtraSourceResult[lang]) {
+      return translateExtraSourceResult[lang]
+    }
+    const translateExtraSource = config.translateExtraSource || {}
+
+    const result = {}
+    // 遍历所有语言配置
+    for (const l in translateExtraSource) {
+      if (lang !== l) continue;
+      if (!result[l]) result[l] = {};
+      const sources = translateExtraSource[l];
+
+      // 处理每种类型的翻译源
+      sources.forEach(source => {
+        let sourceData = {};
+
+        switch (source.type) {
+          case 'file':
+            // 从文件读取JSON数据
+            const filePath = path.resolve(absoluteCwd, source.path);
+            if (fsExistsSync(filePath)) {
+              try {
+                const fileContent = fs.readFileSync(filePath, 'utf8');
+                sourceData = JSON.parse(fileContent);
+              } catch (err) {
+                console.error(`Error reading/parsing file ${filePath}:`, err);
+              }
+            } else {
+              console.warn(`翻译文件不存在: ${filePath}`);
+            }
+            break;
+          case 'json':
+            // 直接使用JSON数据
+            sourceData = source.data || {};
+            break;
+          default:
+            console.warn(`未知的翻译源类型: ${source.type}`);
+        }
+        // 合并当前源数据到结果中
+        Object.assign(result[lang], sourceData)
+      });
+    }
+    translateExtraSourceResult[lang] = result[lang]
+    return translateExtraSourceResult[lang];
+  }
 
   // 从文件中提取模块的的国际化KEY
   function getModuleI18nData(modulePath, fileContent) {
@@ -268,7 +326,8 @@ async function init () {
       }
 
       // 配合--translate使用，需要翻译的语言，目前支持en、ko，多个用逗号分割，默认全部
-      if (!config.translateLanguage) {
+      if (!config.translateLanguage || config.translateLanguage.includes(lang)) {
+        const extraSource = getTranslateExtraSource(lang);
         translateRst = await translateArr(
           config.translateFromLang,
           lang,
@@ -276,15 +335,7 @@ async function init () {
           config.translateUsePinYin, // 是否翻译用拼音替代
           config.translateBaiduAppid, // Baidu翻译的Appid 
           config.translateBaiduKey, // Baidu翻译的key
-        );
-      } else if (config.translateLanguage.includes(lang)) {
-        translateRst = await translateArr(
-          config.translateFromLang,
-          lang,
-          newAddDataArr,
-          config.translateUsePinYin, // 是否翻译用拼音替代
-          config.translateBaiduAppid, // Baidu翻译的Appid 
-          config.translateBaiduKey, // Baidu翻译的key
+          extraSource, // 额外的翻译源，优先使用
         );
       }
       Object.assign(newData, translateRst);

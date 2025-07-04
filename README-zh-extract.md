@@ -180,7 +180,7 @@ const config = {
   i18nFileRules: ["**/*.+(vue|js)"],
   // 不匹配含有国际化文本的文件规则
   ignoreI18nFileRules: [],
-  // 中文正则
+  // 中文正则，可以是一个数组
   zhReg: /([^\x00-\xff]+)/,
   // 忽略被提取的内容的规则可以是一个字符串，正则，或者是函数
   ignoreKeyRules: [

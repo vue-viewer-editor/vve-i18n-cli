@@ -60,6 +60,10 @@ program
     "忽略国际化KEY的规则，这些KEY不会生成再国际化文件中",
     commaSeparatedList
   )
+  .option(
+    "--keep-origin",
+    "默认会删除未引用的key，设置true，原来的key都会被保留下来"
+  )
   .option("--out-dir <path>", "生成的国际化资源包的输出目录")
   .option(
     "-l, --i18n-languages <items>",
@@ -125,10 +129,11 @@ const config = {
   keepKeyRules: [
     /^G\/+/ // G/开头的会被保留
   ],
-  // 忽略国际化KEY的规则
   // 规则可以是一个字符串，正则，或者是函数
   ignoreKeyRules: [
   ],
+  // 默认会删除未引用的key，设置true，原来的key都会被保留下来
+  keepOrigin: false,
   // 生成的国际化资源包的输出目录
   outDir: "lang",
   // 生成的国际化的语言
@@ -340,7 +345,12 @@ async function init () {
       }
       Object.assign(newData, translateRst);
     }
-    return newData;
+
+    let resultData = newData
+    if (config.keepOrigin) {
+      resultData = Object.assign({ ...originData }, newData);
+    }
+    return resultData;
   }
 
   // 保存国际化文件

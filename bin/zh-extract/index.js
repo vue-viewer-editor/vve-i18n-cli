@@ -202,41 +202,47 @@ async function init () {
     return false;
   }
 
-  const tmpRegData = {};
-
-  // 匹配中文
-  const zhReg = new RegExp(config.zhReg, "g");
+  // 匹配中文 - 支持单个正则表达式或正则表达式数组
+  const zhRegs = Array.isArray(config.zhReg) ? 
+    config.zhReg.map(pattern => new RegExp(pattern, "g")) : 
+    [new RegExp(config.zhReg, "g")];
 
   function processFile (fileContent) {
     // 计算出被忽略的包裹信息，默认包括国际化，注释等信息
     const wrappedItems = parseCodeWrappers(fileContent, allIgnoreWrap)
 
     const arr = []
-    while ((tmpRegData.matches = zhReg.exec(fileContent))) {
-      let key = tmpRegData.matches[1]
-      key = key.replace(/\\\\/g, '\\') // 解决\\转义后的问题
-      if (testRules(key, config.ignoreKeyRules)) {
-        continue
+    // 遍历所有正则表达式
+    zhRegs.forEach(zhReg => {
+      // 重置正则表达式的lastIndex，确保每次都从开头开始匹配
+      zhReg.lastIndex = 0;
+      let match;
+      while ((match = zhReg.exec(fileContent))) {
+        let key = match[1]
+        key = key.replace(/\\\\/g, '\\') // 解决\\转义后的问题
+        if (testRules(key, config.ignoreKeyRules)) {
+          continue
+        }
+
+        // 如果忽略了包裹了，则不处理
+        const flag = isPositionWrapped(match.index, wrappedItems)
+        if (flag) {
+          continue
+        }
+
+        const textIndex = match.index
+
+        // 计算文本所在的行和列
+        const { row, col } = calculatePosition(fileContent, textIndex)
+
+        arr.push({
+          label: key,
+          index: textIndex,
+          row: row,
+          col: col,
+        })
       }
-
-      // 如果忽略了包裹了，则不处理
-      const flag = isPositionWrapped(tmpRegData.matches.index, wrappedItems)
-      if (flag) {
-        continue
-      }
-
-      const textIndex = tmpRegData.matches.index
-
-      // 计算文本所在的行和列
-      const { row, col } = calculatePosition(fileContent, textIndex)
-
-      arr.push({
-        label: key,
-        index: textIndex,
-        row: row,
-        col: col,
-      })
-    }
+    });
     return arr
   }
 

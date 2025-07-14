@@ -276,6 +276,9 @@ async function init () {
       while ((tmpRegData.matches = regI18n.exec(fileContent))) {
         let key = tmpRegData.matches[1]
         key = key.replace(/\\\\/g, '\\') // 解决\\转义后的问题
+        key = key.replace(/\\n/g, '\n') // 解决换行符
+        key = key.replace(/\\t/g, '\t') // 解决制表符
+        key = key.replace(/\\r/g, '\r') // 解决回车符
         i18nData[modulePath].push(key);
       }
     }
